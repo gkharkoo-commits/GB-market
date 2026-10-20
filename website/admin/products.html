@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Products & Categories — GB MARKET Admin</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body style="background-color: #f1f5f9;">
+
+  <header class="navbar" style="background-color: #091a2b;">
+    <div class="container nav-container">
+      <a href="/static/admin/index.html" class="brand-logo">
+        <i class="fa-solid fa-gauge-high" style="color:#fbbf24;"></i>
+        <span>GB MARKET ADMIN</span>
+      </a>
+
+      <div class="nav-actions">
+        <div id="nav-auth-slot"></div>
+        <a href="/static/admin/index.html" class="nav-btn-link"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+      </div>
+    </div>
+
+    <!-- Admin Nav Tabs -->
+    <div class="subnav" style="background-color: #030712;">
+      <div class="container subnav-container">
+        <div class="subnav-links">
+          <a href="/static/admin/index.html"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+          <a href="/static/admin/shops.html"><i class="fa-solid fa-store"></i> Shop Applications</a>
+          <a href="/static/admin/products.html" class="active"><i class="fa-solid fa-boxes-stacked"></i> Products & Categories</a>
+          <a href="/static/admin/orders.html"><i class="fa-solid fa-receipt"></i> Orders & Cancellations</a>
+          <a href="/static/admin/deliveries.html"><i class="fa-solid fa-motorcycle"></i> Riders & Deliveries</a>
+          <a href="/static/admin/reports.html"><i class="fa-solid fa-chart-pie"></i> Reports & Payouts</a>
+          <a href="/static/admin/users.html"><i class="fa-solid fa-users"></i> Users & Roles</a>
+          <a href="/static/admin/settings.html"><i class="fa-solid fa-sliders"></i> Settings</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container" style="padding: 32px 16px;">
+    
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:12px;">
+      <div>
+        <h1 style="font-size:1.8rem; font-weight:800; color:var(--primary-dark);">Marketplace Products & Categories</h1>
+        <p style="color:var(--text-muted); font-size:0.9rem;">Catalog moderation, inventory inspection, and category taxonomy</p>
+      </div>
+      <div style="display:flex; gap:10px;">
+        <button onclick="openCategoryModal()" class="btn btn-primary btn-sm">
+          <i class="fa-solid fa-plus"></i> Add New Category
+        </button>
+      </div>
+    </div>
+
+    <!-- Categories Section -->
+    <div class="card" style="margin-bottom: 28px;">
+      <h3 style="font-size:1.15rem; font-weight:700; color:var(--primary-dark); margin-bottom:12px;">
+        <i class="fa-solid fa-tags" style="color:var(--secondary);"></i> Active Categories
+      </h3>
+      <div id="admin-categories-list" style="display:flex; flex-wrap:wrap; gap:10px;">
+        <!-- Populated via API -->
+      </div>
+    </div>
+
+    <!-- Products Section -->
+    <div class="card" style="padding:0; overflow:hidden;">
+      <div style="padding:16px; border-bottom:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+        <h3 style="font-size:1.15rem; font-weight:700; color:var(--primary-dark); margin:0;">
+          All Products Across Registered Shops
+        </h3>
+        <div>
+          <select id="prod-status-filter" onchange="loadAdminProducts()" class="form-control" style="font-size:0.85rem; padding:4px 8px;">
+            <option value="">All Statuses</option>
+            <option value="active" selected>Active Only</option>
+            <option value="out_of_stock">Out of Stock</option>
+            <option value="archived">Archived</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="overflow-x:auto;">
+        <table style="width:100%; border-collapse:collapse; font-size:0.85rem;">
+          <thead>
+            <tr style="background:#f8fafc; color:var(--text-muted); border-bottom:1px solid var(--border-color); text-align:left;">
+              <th style="padding:10px 14px;">Product</th>
+              <th style="padding:10px 14px;">Merchant Shop</th>
+              <th style="padding:10px 14px;">Category</th>
+              <th style="padding:10px 14px; text-align:right;">Price (PKR)</th>
+              <th style="padding:10px 14px; text-align:center;">Stock</th>
+              <th style="padding:10px 14px; text-align:center;">Status</th>
+              <th style="padding:10px 14px; text-align:right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="admin-products-tbody">
+            <tr>
+              <td colspan="7" style="padding:30px; text-align:center; color:var(--text-muted);">Loading products...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Add Category Modal -->
+  <div id="category-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center; padding:16px;">
+    <div class="card" style="width:100%; max-width:480px; box-shadow:var(--shadow-lg);">
+      <h3 style="font-weight:800; color:var(--primary-dark); margin-bottom:14px;">Add Marketplace Category</h3>
+
+      <form id="category-form">
+        <div class="form-group">
+          <label class="form-label">Category Name *</label>
+          <input type="text" id="cat-name" class="form-control" placeholder="e.g. Gilgit Hand-carved Wooden Crafts" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">URL Slug</label>
+          <input type="text" id="cat-slug" class="form-control" placeholder="e.g. wooden-crafts">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">FontAwesome Icon Class</label>
+          <input type="text" id="cat-icon" class="form-control" placeholder="fa-tree" value="fa-tag">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <textarea id="cat-desc" class="form-control" rows="2" placeholder="Brief category description..."></textarea>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
+          <button type="button" onclick="closeCategoryModal()" class="btn btn-outline btn-sm">Cancel</button>
+          <button type="submit" class="btn btn-primary btn-sm">Save Category</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/static/js/api.js"></script>
+  <script src="/static/js/auth.js"></script>
+  <script>
+    async function initAdminProducts() {
+      const user = getCurrentUser();
+      const token = getAuthToken();
+      if (!user || !token || user.role !== "admin") {
+        window.location.href = "/static/admin/login.html";
+        return;
+      }
+      loadCategories();
+      loadAdminProducts();
+    }
+
+    async function loadCategories() {
+      const container = document.getElementById("admin-categories-list");
+      try {
+        const categories = await apiFetch("/categories/");
+        container.innerHTML = categories.map(c => `
+          <div style="background:#f8fafc; border:1px solid var(--border-color); padding:8px 12px; border-radius:var(--radius-sm); font-size:0.85rem; display:flex; align-items:center; gap:8px;">
+            <i class="fa-solid ${c.icon || 'fa-tag'}" style="color:var(--secondary);"></i>
+            <strong>${c.name}</strong>
+          </div>
+        `).join("");
+      } catch (e) {
+        console.error("Categories load error:", e);
+      }
+    }
+
+    async function loadAdminProducts() {
+      const tbody = document.getElementById("admin-products-tbody");
+      const statusFilter = document.getElementById("prod-status-filter").value;
+
+      try {
+        let url = "/admin/all-products";
+        if (statusFilter) url += `?status_filter=${encodeURIComponent(statusFilter)}`;
+
+        const products = await apiFetch(url);
+        if (products.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="7" style="padding:30px; text-align:center; color:var(--text-muted);">No products found.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = products.map(p => `
+          <tr style="border-bottom:1px solid #f1f5f9;">
+            <td style="padding:10px 14px;">
+              <div style="display:flex; align-items:center; gap:10px;">
+                <img src="${p.image_url || 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=100&q=80'}" style="width:36px; height:36px; object-fit:cover; border-radius:4px; border:1px solid var(--border-color);">
+                <div>
+                  <div style="font-weight:700; color:var(--primary-dark);">${p.title}</div>
+                  <div style="font-size:0.75rem; color:var(--text-muted);">${new Date(p.created_at).toLocaleDateString()}</div>
+                </div>
+              </div>
+            </td>
+            <td style="padding:10px 14px;"><strong>${p.shop_name}</strong></td>
+            <td style="padding:10px 14px; color:var(--text-muted);">${p.category_name}</td>
+            <td style="padding:10px 14px; text-align:right; font-weight:700; color:var(--secondary);">PKR ${p.price.toLocaleString()}</td>
+            <td style="padding:10px 14px; text-align:center; font-weight:600;">${p.stock_quantity}</td>
+            <td style="padding:10px 14px; text-align:center;">
+              <span class="badge ${p.status === 'active' ? 'badge-approved' : 'badge-cancelled'}">${p.status}</span>
+            </td>
+            <td style="padding:10px 14px; text-align:right;">
+              <select onchange="changeProductStatus(${p.id}, this.value)" style="font-size:0.75rem; padding:4px 8px; border-radius:4px; border:1px solid var(--border-color);">
+                <option value="active" ${p.status === 'active' ? 'selected' : ''}>Active</option>
+                <option value="out_of_stock" ${p.status === 'out_of_stock' ? 'selected' : ''}>Out of Stock</option>
+                <option value="archived" ${p.status === 'archived' ? 'selected' : ''}>Archive / Hide</option>
+              </select>
+            </td>
+          </tr>
+        `).join("");
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="7" style="padding:20px; color:red; text-align:center;">Error: ${err.message}</td></tr>`;
+      }
+    }
+
+    async function changeProductStatus(id, newStatus) {
+      try {
+        await apiFetch(`/admin/products/${id}/status?status=${newStatus}`, { method: "PUT" });
+        loadAdminProducts();
+      } catch (e) {
+        alert("Failed to update product status: " + e.message);
+      }
+    }
+
+    function openCategoryModal() {
+      document.getElementById("category-modal").style.display = "flex";
+    }
+
+    function closeCategoryModal() {
+      document.getElementById("category-modal").style.display = "none";
+    }
+
+    document.getElementById("category-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const name = document.getElementById("cat-name").value.trim();
+      const slug = document.getElementById("cat-slug").value.trim() || name.toLowerCase().replace(/\s+/g, '-');
+      const icon = document.getElementById("cat-icon").value.trim() || "fa-tag";
+      const desc = document.getElementById("cat-desc").value.trim();
+
+      try {
+        await apiFetch("/categories/", {
+          method: "POST",
+          body: JSON.stringify({
+            name,
+            slug,
+            icon,
+            description: desc,
+            is_active: true
+          })
+        });
+
+        alert("Category added successfully!");
+        closeCategoryModal();
+        loadCategories();
+      } catch (err) {
+        alert(err.message || "Failed to add category");
+      }
+    });
+
+    document.addEventListener("DOMContentLoaded", initAdminProducts);
+  </script>
+</body>
+</html>

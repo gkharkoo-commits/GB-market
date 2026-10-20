@@ -174,3 +174,35 @@ def assign_rider_admin(
     db.commit()
     db.refresh(delivery)
     return {"message": f"Delivery assigned to rider {rider.full_name}", "delivery_id": delivery.id}
+
+@router.get("/admin/all")
+def list_all_deliveries_admin(
+    status_filter: Optional[str] = None,
+    current_admin: User = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+) -> Any:
+    """Admin-only: View all deliveries with rider assignment details."""
+    query = db.query(Delivery)
+    if status_filter:
+        query = query.filter(Delivery.status == status_filter)
+    deliveries = query.order_by(Delivery.created_at.desc()).all()
+    return [
+        {
+            "id": d.id,
+            "order_id": d.order_id,
+            "shop_order_group_id": d.shop_order_group_id,
+            "shop_name": d.shop_group.shop.name if d.shop_group and d.shop_group.shop else "Shop",
+            "rider_id": d.rider_id,
+            "rider_name": d.rider.full_name if d.rider else "Unassigned",
+            "pickup_address": d.pickup_address,
+            "delivery_address": d.delivery_address,
+            "customer_name": d.customer_name,
+            "customer_phone": d.customer_phone,
+            "status": d.status,
+            "rider_notes": d.rider_notes,
+            "failure_reason": d.failure_reason,
+            "assigned_at": d.assigned_at.isoformat() if d.assigned_at else None,
+            "created_at": d.created_at.isoformat() if d.created_at else None
+        }
+        for d in deliveries
+    ]

@@ -2,7 +2,7 @@ import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
 from backend.app.api.routes import (
@@ -132,6 +132,16 @@ def health_check():
         "environment": settings.APP_ENV,
         "version": "1.0.0"
     }
+
+@app.get("/", include_in_schema=False)
+def root():
+    """Redirect root access directly to public marketplace homepage."""
+    return RedirectResponse(url="/static/index.html")
+
+@app.get("/admin", include_in_schema=False)
+def admin_root():
+    """Direct route to admin panel."""
+    return RedirectResponse(url="/static/admin/index.html")
 
 # Register API Routers under /api/v1
 api_v1 = settings.API_V1_STR

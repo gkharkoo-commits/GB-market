@@ -104,3 +104,60 @@ def test_shop_registration_and_workflow(client, customer_user, customer_token, a
     prod_check = client.get(f"/api/v1/products/detail/{product['slug']}")
     assert prod_check.status_code == 200
     assert prod_check.json()["stock_quantity"] == 18
+
+    # 8. Admin views orders list
+    admin_orders_res = client.get(
+        "/api/v1/admin/orders",
+        headers={"Authorization": f"Bearer {admin_token}"}
+    )
+    assert admin_orders_res.status_code == 200
+    admin_orders = admin_orders_res.json()
+    assert any(o["id"] == order["id"] for o in admin_orders)
+
+    # 9. Admin accepts and confirms the order
+    accept_res = client.post(
+        f"/api/v1/admin/orders/{order['id']}/accept",
+        headers={"Authorization": f"Bearer {admin_token}"}
+    )
+    assert accept_res.status_code == 200
+    accept_data = accept_res.json()
+    assert accept_data["status"] == "Confirmed"
+
+    # Verify order is confirmed in order detail
+    detail_res = client.get(
+        f"/api/v1/orders/{order['id']}",
+        headers={"Authorization": f"Bearer {admin_token}"}
+    )
+    assert detail_res.status_code == 200
+    assert detail_res.json()["status"] == "Confirmed"
+
+    # 10. Place another order and test Admin rejection with stock restoration
+    client.post(
+        "/api/v1/cart/items",
+        json={"product_id": product_id, "quantity": 3},
+        headers={"Authorization": f"Bearer {customer_token}"}
+    )
+    checkout_res2 = client.post(
+        "/api/v1/orders/checkout",
+        json=order_payload,
+        headers={"Authorization": f"Bearer {customer_token}"}
+    )
+    assert checkout_res2.status_code == 201
+    order2 = checkout_res2.json()
+    assert order2["status"] == "Pending Confirmation"
+
+    # Stock was decremented to 15 (18 - 3)
+    prod_check2 = client.get(f"/api/v1/products/detail/{product['slug']}")
+    assert prod_check2.json()["stock_quantity"] == 15
+
+    # Admin rejects order 2
+    reject_res = client.post(
+        f"/api/v1/admin/orders/{order2['id']}/reject?reason=Item+damaged+in+transit",
+        headers={"Authorization": f"Bearer {admin_token}"}
+    )
+    assert reject_res.status_code == 200
+    assert reject_res.json()["status"] == "Cancelled"
+
+    # Verify inventory was restored back to 18 (15 + 3)
+    prod_check3 = client.get(f"/api/v1/products/detail/{product['slug']}")
+    assert prod_check3.json()["stock_quantity"] == 18

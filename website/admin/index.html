@@ -28,9 +28,12 @@
         <div class="subnav-links">
           <a href="/static/admin/index.html" class="active"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
           <a href="/static/admin/shops.html"><i class="fa-solid fa-store"></i> Shop Applications</a>
+          <a href="/static/admin/products.html"><i class="fa-solid fa-boxes-stacked"></i> Products & Categories</a>
           <a href="/static/admin/orders.html"><i class="fa-solid fa-receipt"></i> Orders & Cancellations</a>
+          <a href="/static/admin/deliveries.html"><i class="fa-solid fa-motorcycle"></i> Riders & Deliveries</a>
+          <a href="/static/admin/reports.html"><i class="fa-solid fa-chart-pie"></i> Reports & Payouts</a>
           <a href="/static/admin/users.html"><i class="fa-solid fa-users"></i> Users & Roles</a>
-          <a href="/static/admin/settings.html"><i class="fa-solid fa-sliders"></i> Marketplace Settings</a>
+          <a href="/static/admin/settings.html"><i class="fa-solid fa-sliders"></i> Settings</a>
         </div>
       </div>
     </div>
@@ -156,7 +159,12 @@
   <script src="/static/js/auth.js"></script>
   <script>
     async function loadAdminDashboard() {
-      if (!requireAuth(["admin"])) return;
+      const user = getCurrentUser();
+      const token = getAuthToken();
+      if (!user || !token || user.role !== "admin") {
+        window.location.href = "/static/admin/login.html";
+        return;
+      }
 
       try {
         const stats = await apiFetch("/admin/dashboard-stats");

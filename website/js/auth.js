@@ -53,14 +53,25 @@ function requireAuth(allowedRoles = []) {
   const user = getCurrentUser();
   const token = getAuthToken();
 
+  const isAdminSection = allowedRoles.includes("admin") || window.location.pathname.includes("/admin/");
+
   if (!user || !token) {
-    window.location.href = `/static/login.html?redirect=${encodeURIComponent(window.location.pathname)}`;
+    if (isAdminSection) {
+      window.location.href = `/static/admin/login.html?redirect=${encodeURIComponent(window.location.pathname)}`;
+    } else {
+      window.location.href = `/static/login.html?redirect=${encodeURIComponent(window.location.pathname)}`;
+    }
     return false;
   }
 
   if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
-    alert("Access restricted: You do not have permissions for this section.");
-    window.location.href = "/static/index.html";
+    if (isAdminSection) {
+      alert("Access restricted: Administrator privileges required.");
+      window.location.href = "/static/admin/login.html";
+    } else {
+      alert("Access restricted: You do not have permissions for this section.");
+      window.location.href = "/static/index.html";
+    }
     return false;
   }
 

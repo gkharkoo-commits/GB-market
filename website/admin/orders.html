@@ -28,9 +28,12 @@
         <div class="subnav-links">
           <a href="/static/admin/index.html"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
           <a href="/static/admin/shops.html"><i class="fa-solid fa-store"></i> Shop Applications</a>
+          <a href="/static/admin/products.html"><i class="fa-solid fa-boxes-stacked"></i> Products & Categories</a>
           <a href="/static/admin/orders.html" class="active"><i class="fa-solid fa-receipt"></i> Orders & Cancellations</a>
+          <a href="/static/admin/deliveries.html"><i class="fa-solid fa-motorcycle"></i> Riders & Deliveries</a>
+          <a href="/static/admin/reports.html"><i class="fa-solid fa-chart-pie"></i> Reports & Payouts</a>
           <a href="/static/admin/users.html"><i class="fa-solid fa-users"></i> Users & Roles</a>
-          <a href="/static/admin/settings.html"><i class="fa-solid fa-sliders"></i> Marketplace Settings</a>
+          <a href="/static/admin/settings.html"><i class="fa-solid fa-sliders"></i> Settings</a>
         </div>
       </div>
     </div>
@@ -53,22 +56,34 @@
     </div>
 
     <!-- All Orders Section -->
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-      <h2 style="font-size:1.4rem; font-weight:800; color:var(--primary-dark);">All Marketplace Orders</h2>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:12px;">
+      <div>
+        <h2 style="font-size:1.4rem; font-weight:800; color:var(--primary-dark); margin-bottom:4px;">All Marketplace Orders</h2>
+        <p style="color:var(--text-muted); font-size:0.85rem;">Manage customer purchases, accept pending orders, or process cancellations</p>
+      </div>
+
+      <!-- Status Filters -->
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="btn btn-sm btn-outline filter-btn active" data-filter="" onclick="filterOrders(this, '')">All Orders</button>
+        <button class="btn btn-sm btn-outline filter-btn" data-filter="pending" onclick="filterOrders(this, 'pending')">Pending</button>
+        <button class="btn btn-sm btn-outline filter-btn" data-filter="Confirmed" onclick="filterOrders(this, 'Confirmed')">Confirmed</button>
+        <button class="btn btn-sm btn-outline filter-btn" data-filter="Cancelled" onclick="filterOrders(this, 'Cancelled')">Cancelled</button>
+      </div>
     </div>
 
+    <!-- Orders Table -->
     <div class="card" style="padding:0; overflow:hidden;">
       <div style="overflow-x:auto;">
         <table style="width:100%; border-collapse:collapse; font-size:0.85rem;">
           <thead>
             <tr style="background:#f8fafc; color:var(--text-muted); border-bottom:1px solid var(--border-color); text-align:left;">
               <th style="padding:12px 16px;">Order #</th>
-              <th style="padding:12px 16px;">Customer</th>
+              <th style="padding:12px 16px;">Customer & Contact</th>
               <th style="padding:12px 16px;">Destination</th>
               <th style="padding:12px 16px; text-align:right;">Total</th>
               <th style="padding:12px 16px; text-align:center;">Status</th>
               <th style="padding:12px 16px;">Date</th>
-              <th style="padding:12px 16px; text-align:right;">Action</th>
+              <th style="padding:12px 16px; text-align:center; min-width:240px;">Actions</th>
             </tr>
           </thead>
           <tbody id="admin-orders-tbody">
@@ -85,11 +100,18 @@
   <script src="/static/js/api.js"></script>
   <script src="/static/js/auth.js"></script>
   <script>
-    async function loadAdminOrdersPage() {
-      if (!requireAuth(["admin"])) return;
+    let currentFilter = "";
 
-      loadCancellations();
-      loadOrders();
+    async function loadAdminOrdersPage() {
+      const user = getCurrentUser();
+      const token = getAuthToken();
+      if (!user || !token || user.role !== "admin") {
+        window.location.href = "/static/admin/login.html";
+        return;
+      }
+
+      await loadCancellations();
+      await loadOrders();
     }
 
     async function loadCancellations() {
@@ -128,39 +150,179 @@
       try {
         await apiFetch(`/admin/cancellations/${reqId}/review?decision=${decision}`, { method: "PUT" });
         alert(`Cancellation ${decision.toLowerCase()} successfully!`);
-        loadCancellations();
-        loadOrders();
+        await loadCancellations();
+        await loadOrders();
       } catch (err) {
         alert(err.message || "Failed to process cancellation");
       }
     }
 
+    function filterOrders(btn, filterVal) {
+      document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      currentFilter = filterVal;
+      loadOrders();
+    }
+
     async function loadOrders() {
       const tbody = document.getElementById("admin-orders-tbody");
-      try {
-        const stats = await apiFetch("/admin/dashboard-stats");
-        const orders = stats.recent_orders || [];
+      tbody.innerHTML = `<tr><td colspan="7" style="padding:30px; text-align:center; color:var(--text-muted);"><i class="fa-solid fa-spinner fa-spin"></i> Fetching orders...</td></tr>`;
 
-        if (orders.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="7" style="padding:30px; text-align:center; color:var(--text-muted);">No orders recorded.</td></tr>`;
+      try {
+        const queryUrl = currentFilter ? `/admin/orders?status_filter=${encodeURIComponent(currentFilter)}` : "/admin/orders";
+        const orders = await apiFetch(queryUrl);
+
+        if (!orders || orders.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="7" style="padding:30px; text-align:center; color:var(--text-muted);"><i class="fa-solid fa-box-open"></i> No orders found ${currentFilter ? 'under ' + currentFilter : ''}.</td></tr>`;
           return;
         }
 
-        tbody.innerHTML = orders.map(o => `
-          <tr style="border-bottom:1px solid #f1f5f9;">
-            <td style="padding:12px 16px; font-weight:700; color:var(--primary-dark);">${o.order_number}</td>
-            <td style="padding:12px 16px;">${o.customer_name}</td>
-            <td style="padding:12px 16px; color:var(--text-muted);">Gilgit-Baltistan</td>
-            <td style="padding:12px 16px; text-align:right; font-weight:700; color:var(--secondary);">PKR ${o.total_amount.toLocaleString()}</td>
-            <td style="padding:12px 16px; text-align:center;"><span class="badge badge-preparing">${o.status}</span></td>
-            <td style="padding:12px 16px; color:var(--text-muted);">${new Date(o.created_at).toLocaleDateString()}</td>
-            <td style="padding:12px 16px; text-align:right;">
-              <a href="/static/order-detail.html?id=${o.id}" class="btn btn-outline btn-sm">Inspect &rarr;</a>
-            </td>
-          </tr>
-        `).join("");
+        tbody.innerHTML = orders.map(o => {
+          const isPending = o.status === "Pending Confirmation" || o.status === "Pending" || o.status.toLowerCase().includes("pending");
+          const isConfirmed = o.status === "Confirmed";
+          const isCancelled = o.status === "Cancelled";
+
+          // Format status badge
+          let badgeClass = "badge-pending";
+          let badgeIcon = "fa-clock";
+          let displayStatus = o.status;
+
+          if (isConfirmed) {
+            badgeClass = "badge-approved";
+            badgeIcon = "fa-check";
+          } else if (isCancelled) {
+            badgeClass = "badge-cancelled";
+            badgeIcon = "fa-xmark";
+          } else if (o.status === "Delivered") {
+            badgeClass = "badge-delivered";
+            badgeIcon = "fa-truck";
+          } else if (!isPending) {
+            badgeClass = "badge-preparing";
+            badgeIcon = "fa-box";
+          }
+
+          // Build Action buttons
+          let actionButtons = "";
+          if (isPending) {
+            actionButtons = `
+              <div style="display:inline-flex; align-items:center; gap:6px; justify-content:center;">
+                <button onclick="acceptOrder(${o.id}, '${o.order_number}')" class="btn btn-sm btn-success" style="padding:6px 12px; font-weight:700; white-space:nowrap;" title="Accept and Confirm this order">
+                  <i class="fa-solid fa-check"></i> Accept Order
+                </button>
+                <button onclick="rejectOrder(${o.id}, '${o.order_number}')" class="btn btn-sm btn-danger" style="padding:6px 10px; font-weight:700; white-space:nowrap;" title="Reject and Cancel this order">
+                  <i class="fa-solid fa-xmark"></i> Reject
+                </button>
+                <a href="/static/order-detail.html?id=${o.id}" class="btn btn-sm btn-outline" style="padding:6px 10px;" title="Inspect order details">
+                  <i class="fa-solid fa-eye"></i>
+                </a>
+              </div>
+            `;
+          } else if (isConfirmed) {
+            actionButtons = `
+              <div style="display:inline-flex; align-items:center; gap:6px; justify-content:center;">
+                <span style="color:var(--secondary); font-size:0.8rem; font-weight:700; margin-right:4px;">
+                  <i class="fa-solid fa-circle-check"></i> Confirmed
+                </span>
+                <button disabled class="btn btn-sm" style="background:#e2e8f0; color:#64748b; border:1px solid #cbd5e1; cursor:not-allowed; padding:5px 8px; opacity:0.6;" title="Order already accepted">
+                  <i class="fa-solid fa-check"></i> Accepted
+                </button>
+                <button onclick="rejectOrder(${o.id}, '${o.order_number}')" class="btn btn-sm btn-outline" style="color:var(--danger); border-color:var(--danger); padding:5px 8px;" title="Cancel this order">
+                  <i class="fa-solid fa-ban"></i>
+                </button>
+                <a href="/static/order-detail.html?id=${o.id}" class="btn btn-sm btn-outline" style="padding:5px 8px;" title="Inspect order details">
+                  <i class="fa-solid fa-eye"></i>
+                </a>
+              </div>
+            `;
+          } else if (isCancelled) {
+            actionButtons = `
+              <div style="display:inline-flex; align-items:center; gap:6px; justify-content:center;">
+                <span style="color:var(--danger); font-size:0.8rem; font-weight:700; margin-right:4px;">
+                  <i class="fa-solid fa-circle-xmark"></i> Cancelled
+                </span>
+                <a href="/static/order-detail.html?id=${o.id}" class="btn btn-sm btn-outline" style="padding:5px 8px;" title="Inspect order details">
+                  <i class="fa-solid fa-eye"></i> Inspect
+                </a>
+              </div>
+            `;
+          } else {
+            actionButtons = `
+              <div style="display:inline-flex; align-items:center; gap:6px; justify-content:center;">
+                <a href="/static/order-detail.html?id=${o.id}" class="btn btn-sm btn-outline" style="padding:6px 12px;">
+                  <i class="fa-solid fa-eye"></i> Inspect
+                </a>
+              </div>
+            `;
+          }
+
+          return `
+            <tr style="border-bottom:1px solid #f1f5f9;">
+              <td style="padding:12px 16px; font-weight:700; color:var(--primary-dark);">
+                ${o.order_number}
+                <div style="font-size:0.75rem; color:var(--text-muted); font-weight:normal;">${o.items_count || 1} item(s) &bull; ${o.shop_names || 'GB Market'}</div>
+              </td>
+              <td style="padding:12px 16px;">
+                <div style="font-weight:600;">${o.customer_name}</div>
+                <div style="font-size:0.75rem; color:var(--text-muted);"><i class="fa-solid fa-phone"></i> ${o.customer_phone}</div>
+              </td>
+              <td style="padding:12px 16px; color:var(--text-dark);">
+                <div>${o.delivery_locality}, ${o.delivery_city}</div>
+                <div style="font-size:0.75rem; color:var(--text-muted); max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${o.delivery_address}</div>
+              </td>
+              <td style="padding:12px 16px; text-align:right;">
+                <div style="font-weight:800; color:var(--secondary);">PKR ${o.total_amount.toLocaleString()}</div>
+                <div style="font-size:0.75rem; color:var(--text-muted);">${o.payment_method}</div>
+              </td>
+              <td style="padding:12px 16px; text-align:center;">
+                <span class="badge ${badgeClass}"><i class="fa-solid ${badgeIcon}"></i> ${displayStatus}</span>
+              </td>
+              <td style="padding:12px 16px; color:var(--text-muted); font-size:0.8rem;">
+                ${new Date(o.created_at).toLocaleDateString()}
+                <div style="font-size:0.75rem;">${new Date(o.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+              </td>
+              <td style="padding:12px 16px; text-align:center;">
+                ${actionButtons}
+              </td>
+            </tr>
+          `;
+        }).join("");
+
       } catch (err) {
         tbody.innerHTML = `<tr><td colspan="7" style="padding:20px; color:red; text-align:center;">Failed to load orders: ${err.message}</td></tr>`;
+      }
+    }
+
+    async function acceptOrder(orderId, orderNumber) {
+      if (!confirm(`Are you sure you want to ACCEPT Order #${orderNumber}?\n\nThis will confirm the customer order and move it to Confirmed status in the database.`)) {
+        return;
+      }
+
+      try {
+        const res = await apiFetch(`/admin/orders/${orderId}/accept`, {
+          method: "POST"
+        });
+        alert(`Success: Order #${orderNumber} has been ACCEPTED and confirmed!`);
+        await loadOrders();
+      } catch (err) {
+        alert(err.message || "Failed to accept order");
+      }
+    }
+
+    async function rejectOrder(orderId, orderNumber) {
+      const reason = prompt(
+        `Are you sure you want to REJECT Order #${orderNumber}?\n\nPlease enter rejection reason (stock will be restored automatically):`,
+        "Item unavailable or delivery location unserviceable"
+      );
+      if (reason === null) return; // User pressed Cancel
+
+      try {
+        const res = await apiFetch(`/admin/orders/${orderId}/reject?reason=${encodeURIComponent(reason.trim() || 'Rejected by Administrator')}`, {
+          method: "POST"
+        });
+        alert(`Order #${orderNumber} has been REJECTED and customer stock restored to inventory.`);
+        await loadOrders();
+      } catch (err) {
+        alert(err.message || "Failed to reject order");
       }
     }
 

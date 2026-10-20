@@ -19,7 +19,7 @@ from backend.app.core.permissions import (
 from backend.app.models.audit import AuditLog
 from backend.app.models.complaint import Complaint
 from backend.app.models.delivery import Delivery
-from backend.app.models.order import CancellationRequest, Order, OrderStatusHistory
+from backend.app.models.order import CancellationRequest, Order, OrderStatusHistory, ShopOrderGroup
 from backend.app.models.product import Product
 from backend.app.models.setting import MarketplaceSetting
 from backend.app.models.shop import Shop
@@ -301,3 +301,332 @@ def update_setting(
         request=request
     )
     return setting
+
+# ----------------- Products & Financial Reports -----------------
+
+@router.get("/all-products")
+def list_all_products_admin(
+    status_filter: Optional[str] = None,
+    current_admin: User = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+) -> Any:
+    """Admin-only: List all marketplace products across all registered shops."""
+    query = db.query(Product)
+    if status_filter:
+        query = query.filter(Product.status == status_filter)
+    products = query.order_by(Product.created_at.desc()).all()
+    return [
+        {
+            "id": p.id,
+            "title": p.title,
+            "shop_id": p.shop_id,
+            "shop_name": p.shop.name if p.shop else "Unknown",
+            "category_name": p.category.name if p.category else "Uncategorized",
+            "price": float(p.price),
+            "stock_quantity": p.stock_quantity,
+            "status": p.status,
+            "is_featured": p.is_featured,
+            "created_at": p.created_at.isoformat(),
+            "image_url": p.images[0].image_url if p.images else None
+        }
+        for p in products
+    ]
+
+@router.put("/products/{product_id}/status")
+def update_product_status_admin(
+    product_id: int,
+    status: str,
+    request: Request,
+    current_admin: User = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+) -> Any:
+    """Admin-only: Moderate or archive a product listing."""
+    p = db.query(Product).filter(Product.id == product_id).first()
+    if not p:
+        raise HTTPException(status_code=404, detail="Product not found")
+    p.status = status
+    db.commit()
+    record_audit(
+        db=db,
+        actor=current_admin,
+        action="PRODUCT_MODERATE",
+        entity_type="Product",
+        entity_id=str(p.id),
+        details=f"Product '{p.title}' status changed to {status}",
+        request=request
+    )
+    return {"message": f"Product status updated to {status}"}
+
+@router.get("/financial-reports")
+def get_financial_reports(
+    current_admin: User = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+) -> Any:
+    """Admin-only: Aggregate financial settlement reports and shop breakdown."""
+    gross_sales = db.query(func.coalesce(func.sum(Order.total_amount), 0)).filter(
+        Order.status != OrderStatus.CANCELLED.value
+    ).scalar() or 0.0
+
+    total_commission = db.query(func.coalesce(func.sum(ShopOrderGroup.commission_amount), 0)).filter(
+        ShopOrderGroup.status != OrderStatus.CANCELLED.value
+    ).scalar() or 0.0
+
+    total_payouts = db.query(func.coalesce(func.sum(ShopOrderGroup.seller_payout), 0)).filter(
+        ShopOrderGroup.status != OrderStatus.CANCELLED.value
+    ).scalar() or 0.0
+
+    # Group sales per shop
+    shop_groups = (
+        db.query(
+            Shop.id,
+            Shop.name,
+            Shop.city,
+            func.count(ShopOrderGroup.id).label("total_orders"),
+            func.coalesce(func.sum(ShopOrderGroup.subtotal), 0).label("shop_sales"),
+            func.coalesce(func.sum(ShopOrderGroup.commission_amount), 0).label("commission"),
+            func.coalesce(func.sum(ShopOrderGroup.seller_payout), 0).label("payout")
+        )
+        .join(ShopOrderGroup, Shop.id == ShopOrderGroup.shop_id)
+        .filter(ShopOrderGroup.status != OrderStatus.CANCELLED.value)
+        .group_by(Shop.id, Shop.name, Shop.city)
+        .all()
+    )
+
+    return {
+        "gross_sales": float(gross_sales),
+        "total_commission": float(total_commission),
+        "total_seller_payouts": float(total_payouts),
+        "shops_breakdown": [
+            {
+                "shop_id": row.id,
+                "shop_name": row.name,
+                "city": row.city,
+                "total_orders": row.total_orders,
+                "shop_sales": float(row.shop_sales),
+                "commission": float(row.commission),
+                "payout": float(row.payout)
+            }
+            for row in shop_groups
+        ]
+    }
+
+# ----------------- Orders Administration -----------------
+
+@router.get("/orders")
+def list_orders_admin(
+    status_filter: Optional[str] = None,
+    current_admin: User = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+) -> Any:
+    """Admin-only: List all marketplace orders with customer and fulfillment details."""
+    query = db.query(Order)
+    if status_filter:
+        if status_filter.lower() == "pending":
+            query = query.filter(Order.status.in_([OrderStatus.PENDING_CONFIRMATION.value, "Pending"]))
+        else:
+            query = query.filter(Order.status == status_filter)
+    orders = query.order_by(Order.created_at.desc()).all()
+
+    return [
+        {
+            "id": o.id,
+            "order_number": o.order_number,
+            "customer_id": o.customer_id,
+            "customer_name": o.customer_name,
+            "customer_phone": o.customer_phone,
+            "customer_email": o.customer_email,
+            "delivery_city": o.delivery_city,
+            "delivery_locality": o.delivery_locality,
+            "delivery_address": o.delivery_address,
+            "subtotal": float(o.subtotal),
+            "delivery_fee": float(o.delivery_fee),
+            "total_amount": float(o.total_amount),
+            "payment_method": o.payment_method,
+            "payment_status": o.payment_status,
+            "status": o.status,
+            "cancellation_reason": o.cancellation_reason,
+            "created_at": o.created_at.isoformat(),
+            "items_count": len(o.items),
+            "shop_names": ", ".join([sg.shop.name for sg in o.shop_groups if sg.shop]) or "GB Market"
+        }
+        for o in orders
+    ]
+
+@router.post("/orders/{order_id}/accept")
+@router.put("/orders/{order_id}/accept")
+def accept_order_admin(
+    order_id: int,
+    request: Request,
+    current_admin: User = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+) -> Any:
+    """Admin-only: Accept and confirm a pending customer order."""
+    order = db.query(Order).filter(Order.id == order_id).first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+
+    if order.status in [OrderStatus.CANCELLED.value, OrderStatus.DELIVERED.value]:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Cannot accept order in '{order.status}' status"
+        )
+
+    previous_status = order.status
+    order.status = OrderStatus.CONFIRMED.value
+
+    # Update all associated shop groups to Confirmed
+    for sg in order.shop_groups:
+        if sg.status in [OrderStatus.PENDING_CONFIRMATION.value, "Pending"]:
+            sg.status = OrderStatus.CONFIRMED.value
+
+    # Log status transition
+    history = OrderStatusHistory(
+        order_id=order.id,
+        previous_status=previous_status,
+        new_status=OrderStatus.CONFIRMED.value,
+        changed_by_id=current_admin.id,
+        changed_by_role="admin",
+        notes=f"Order accepted and confirmed by Admin ({current_admin.full_name})"
+    )
+    db.add(history)
+    db.commit()
+    db.refresh(order)
+
+    record_audit(
+        db=db,
+        actor=current_admin,
+        action="ORDER_ACCEPTED",
+        entity_type="Order",
+        entity_id=str(order.id),
+        details=f"Order {order.order_number} confirmed by admin",
+        request=request
+    )
+
+    return {
+        "message": f"Order {order.order_number} accepted and confirmed successfully",
+        "order_id": order.id,
+        "order_number": order.order_number,
+        "status": order.status
+    }
+
+@router.post("/orders/{order_id}/reject")
+@router.put("/orders/{order_id}/reject")
+def reject_order_admin(
+    order_id: int,
+    request: Request,
+    reason: Optional[str] = "Rejected by Administrator",
+    current_admin: User = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+) -> Any:
+    """Admin-only: Reject and cancel an order, restoring stock to product inventory."""
+    order = db.query(Order).filter(Order.id == order_id).first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+
+    if order.status in [OrderStatus.CANCELLED.value, OrderStatus.DELIVERED.value]:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Cannot reject order in '{order.status}' status"
+        )
+
+    previous_status = order.status
+    order.status = OrderStatus.CANCELLED.value
+    order.cancellation_reason = reason or "Rejected by Administrator"
+
+    # Restore product inventory
+    for item in order.items:
+        if item.product:
+            item.product.stock_quantity += item.quantity
+            if item.product.status == ProductStatus.OUT_OF_STOCK.value:
+                item.product.status = ProductStatus.ACTIVE.value
+
+    # Update shop order groups
+    for sg in order.shop_groups:
+        sg.status = OrderStatus.CANCELLED.value
+        sg.cancellation_reason = order.cancellation_reason
+
+    # Log status transition
+    history = OrderStatusHistory(
+        order_id=order.id,
+        previous_status=previous_status,
+        new_status=OrderStatus.CANCELLED.value,
+        changed_by_id=current_admin.id,
+        changed_by_role="admin",
+        notes=f"Order rejected by Admin ({current_admin.full_name}). Reason: {order.cancellation_reason}"
+    )
+    db.add(history)
+    db.commit()
+    db.refresh(order)
+
+    record_audit(
+        db=db,
+        actor=current_admin,
+        action="ORDER_REJECTED",
+        entity_type="Order",
+        entity_id=str(order.id),
+        details=f"Order {order.order_number} rejected by admin. Reason: {order.cancellation_reason}",
+        request=request
+    )
+
+    return {
+        "message": f"Order {order.order_number} rejected and stock restored to inventory",
+        "order_id": order.id,
+        "order_number": order.order_number,
+        "status": order.status
+    }
+
+@router.put("/orders/{order_id}/status")
+def update_order_status_admin(
+    order_id: int,
+    status: str,
+    notes: Optional[str] = None,
+    request: Request = None,
+    current_admin: User = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+) -> Any:
+    """Admin-only: Manually update order status."""
+    order = db.query(Order).filter(Order.id == order_id).first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+
+    previous_status = order.status
+    order.status = status
+
+    if status == OrderStatus.CANCELLED.value:
+        order.cancellation_reason = notes or "Cancelled by Administrator"
+        for item in order.items:
+            if item.product:
+                item.product.stock_quantity += item.quantity
+                if item.product.status == ProductStatus.OUT_OF_STOCK.value:
+                    item.product.status = ProductStatus.ACTIVE.value
+        for sg in order.shop_groups:
+            sg.status = OrderStatus.CANCELLED.value
+            sg.cancellation_reason = order.cancellation_reason
+    elif status == OrderStatus.CONFIRMED.value:
+        for sg in order.shop_groups:
+            if sg.status in [OrderStatus.PENDING_CONFIRMATION.value, "Pending"]:
+                sg.status = OrderStatus.CONFIRMED.value
+
+    history = OrderStatusHistory(
+        order_id=order.id,
+        previous_status=previous_status,
+        new_status=status,
+        changed_by_id=current_admin.id,
+        changed_by_role="admin",
+        notes=notes or f"Order status changed to {status} by Admin ({current_admin.full_name})"
+    )
+    db.add(history)
+    db.commit()
+    db.refresh(order)
+
+    record_audit(
+        db=db,
+        actor=current_admin,
+        action="ORDER_STATUS_CHANGE",
+        entity_type="Order",
+        entity_id=str(order.id),
+        details=f"Order {order.order_number} status changed from {previous_status} to {status}",
+        request=request
+    )
+
+    return {"message": f"Order status updated to {status}", "status": order.status}

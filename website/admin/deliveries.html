@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Riders & Deliveries Control — GB MARKET Admin</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body style="background-color: #f1f5f9;">
+
+  <header class="navbar" style="background-color: #091a2b;">
+    <div class="container nav-container">
+      <a href="/static/admin/index.html" class="brand-logo">
+        <i class="fa-solid fa-gauge-high" style="color:#fbbf24;"></i>
+        <span>GB MARKET ADMIN</span>
+      </a>
+
+      <div class="nav-actions">
+        <div id="nav-auth-slot"></div>
+        <a href="/static/admin/index.html" class="nav-btn-link"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+      </div>
+    </div>
+
+    <!-- Admin Nav Tabs -->
+    <div class="subnav" style="background-color: #030712;">
+      <div class="container subnav-container">
+        <div class="subnav-links">
+          <a href="/static/admin/index.html"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+          <a href="/static/admin/shops.html"><i class="fa-solid fa-store"></i> Shop Applications</a>
+          <a href="/static/admin/products.html"><i class="fa-solid fa-boxes-stacked"></i> Products & Categories</a>
+          <a href="/static/admin/orders.html"><i class="fa-solid fa-receipt"></i> Orders & Cancellations</a>
+          <a href="/static/admin/deliveries.html" class="active"><i class="fa-solid fa-motorcycle"></i> Riders & Deliveries</a>
+          <a href="/static/admin/reports.html"><i class="fa-solid fa-chart-pie"></i> Reports & Payouts</a>
+          <a href="/static/admin/users.html"><i class="fa-solid fa-users"></i> Users & Roles</a>
+          <a href="/static/admin/settings.html"><i class="fa-solid fa-sliders"></i> Settings</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container" style="padding: 32px 16px;">
+    
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:12px;">
+      <div>
+        <h1 style="font-size:1.8rem; font-weight:800; color:var(--primary-dark);">Rider Dispatch & Delivery Management</h1>
+        <p style="color:var(--text-muted); font-size:0.9rem;">Assign riders to pending merchant pickups and monitor regional fulfillment</p>
+      </div>
+      <div>
+        <select id="delivery-filter" onchange="loadDeliveries()" class="form-control" style="font-size:0.85rem; padding:6px 12px;">
+          <option value="">All Deliveries</option>
+          <option value="Pending Assignment">Pending Assignment</option>
+          <option value="Assigned">Assigned</option>
+          <option value="Picked Up">Picked Up</option>
+          <option value="Out for Delivery">Out for Delivery</option>
+          <option value="Delivered">Delivered</option>
+          <option value="Delivery Failed">Failed</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="card" style="padding:0; overflow:hidden;">
+      <div style="overflow-x:auto;">
+        <table style="width:100%; border-collapse:collapse; font-size:0.85rem;">
+          <thead>
+            <tr style="background:#f8fafc; color:var(--text-muted); border-bottom:1px solid var(--border-color); text-align:left;">
+              <th style="padding:12px 14px;">ID</th>
+              <th style="padding:12px 14px;">Merchant Store</th>
+              <th style="padding:12px 14px;">Customer & Destination</th>
+              <th style="padding:12px 14px;">Assigned Rider</th>
+              <th style="padding:12px 14px; text-align:center;">Status</th>
+              <th style="padding:12px 14px; text-align:right;">Rider Assignment</th>
+            </tr>
+          </thead>
+          <tbody id="deliveries-tbody">
+            <tr>
+              <td colspan="6" style="padding:30px; text-align:center; color:var(--text-muted);">Loading deliveries...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <script src="/static/js/api.js"></script>
+  <script src="/static/js/auth.js"></script>
+  <script>
+    let ridersList = [];
+
+    async function initDeliveriesPage() {
+      const user = getCurrentUser();
+      const token = getAuthToken();
+      if (!user || !token || user.role !== "admin") {
+        window.location.href = "/static/admin/login.html";
+        return;
+      }
+      await loadRiders();
+      await loadDeliveries();
+    }
+
+    async function loadRiders() {
+      try {
+        ridersList = await apiFetch("/admin/users?role=rider");
+      } catch (e) {
+        console.error("Failed to load riders:", e);
+      }
+    }
+
+    async function loadDeliveries() {
+      const tbody = document.getElementById("deliveries-tbody");
+      const filter = document.getElementById("delivery-filter").value;
+
+      try {
+        let url = "/deliveries/admin/all";
+        if (filter) url += `?status_filter=${encodeURIComponent(filter)}`;
+
+        const deliveries = await apiFetch(url);
+        if (deliveries.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="6" style="padding:40px; text-align:center; color:var(--text-muted);">No deliveries matching filter.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = deliveries.map(d => {
+          let badgeClass = "badge-pending";
+          if (d.status === "Delivered") badgeClass = "badge-delivered";
+          else if (d.status === "Delivery Failed") badgeClass = "badge-cancelled";
+          else if (d.status === "Assigned" || d.status === "Picked Up" || d.status === "Out for Delivery") badgeClass = "badge-preparing";
+
+          const riderOptions = ridersList.map(r => `
+            <option value="${r.id}" ${d.rider_id === r.id ? 'selected' : ''}>${r.full_name} (${r.phone})</option>
+          `).join("");
+
+          return `
+            <tr style="border-bottom:1px solid #f1f5f9;">
+              <td style="padding:12px 14px; font-weight:700;">#${d.id}</td>
+              <td style="padding:12px 14px;">
+                <strong>${d.shop_name}</strong>
+                <div style="font-size:0.75rem; color:var(--text-muted); max-width:220px; line-height:1.3;">${d.pickup_address}</div>
+              </td>
+              <td style="padding:12px 14px;">
+                <strong>${d.customer_name}</strong> (<a href="tel:${d.customer_phone}">${d.customer_phone}</a>)
+                <div style="font-size:0.75rem; color:var(--text-muted); max-width:240px; line-height:1.3;">${d.delivery_address}</div>
+              </td>
+              <td style="padding:12px 14px;">
+                <span style="font-weight:600; color:${d.rider_id ? 'var(--primary-dark)' : 'var(--accent-orange)'};">
+                  <i class="fa-solid fa-motorcycle"></i> ${d.rider_name}
+                </span>
+              </td>
+              <td style="padding:12px 14px; text-align:center;">
+                <span class="badge ${badgeClass}">${d.status}</span>
+              </td>
+              <td style="padding:12px 14px; text-align:right;">
+                <select onchange="assignRider(${d.id}, this.value)" style="font-size:0.75rem; padding:4px 8px; border-radius:4px; border:1px solid var(--border-color); max-width:180px;">
+                  <option value="">Choose Rider...</option>
+                  ${riderOptions}
+                </select>
+              </td>
+            </tr>
+          `;
+        }).join("");
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="6" style="padding:20px; color:red; text-align:center;">Error: ${err.message}</td></tr>`;
+      }
+    }
+
+    async function assignRider(deliveryId, riderId) {
+      if (!riderId) return;
+      try {
+        await apiFetch(`/deliveries/admin/${deliveryId}/assign`, {
+          method: "PUT",
+          body: JSON.stringify({ rider_id: parseInt(riderId) })
+        });
+        alert("Delivery assigned successfully!");
+        loadDeliveries();
+      } catch (err) {
+        alert(err.message || "Failed to assign rider");
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", initDeliveriesPage);
+  </script>
+</body>
+</html>
