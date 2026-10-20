@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Users & Role Control — GB MARKET Admin</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body style="background-color: #f1f5f9;">
+
+  <header class="navbar" style="background-color: #091a2b;">
+    <div class="container nav-container">
+      <a href="/static/admin/index.html" class="brand-logo">
+        <i class="fa-solid fa-gauge-high" style="color:#fbbf24;"></i>
+        <span>GB MARKET ADMIN</span>
+      </a>
+
+      <div class="nav-actions">
+        <div id="nav-auth-slot"></div>
+        <a href="/static/admin/index.html" class="nav-btn-link"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+      </div>
+    </div>
+
+    <!-- Admin Nav Tabs -->
+    <div class="subnav" style="background-color: #030712;">
+      <div class="container subnav-container">
+        <div class="subnav-links">
+          <a href="/static/admin/index.html"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+          <a href="/static/admin/shops.html"><i class="fa-solid fa-store"></i> Shop Applications</a>
+          <a href="/static/admin/orders.html"><i class="fa-solid fa-receipt"></i> Orders & Cancellations</a>
+          <a href="/static/admin/users.html" class="active"><i class="fa-solid fa-users"></i> Users & Roles</a>
+          <a href="/static/admin/settings.html"><i class="fa-solid fa-sliders"></i> Marketplace Settings</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container" style="padding: 32px 16px;">
+    
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:12px;">
+      <div>
+        <h1 style="font-size:1.8rem; font-weight:800; color:var(--primary-dark);">User & Role Management</h1>
+        <p style="color:var(--text-muted); font-size:0.9rem;">Assign backend roles (Customer, Shopkeeper, Rider, Administrator) and enforce security status</p>
+      </div>
+      <div>
+        <select id="role-filter" onchange="loadUsers()" class="form-control" style="font-size:0.85rem; padding:6px 12px;">
+          <option value="">All Roles</option>
+          <option value="customer">Customers</option>
+          <option value="shopkeeper">Shopkeepers</option>
+          <option value="rider">Riders</option>
+          <option value="admin">Administrators</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="card" style="padding:0; overflow:hidden;">
+      <div style="overflow-x:auto;">
+        <table style="width:100%; border-collapse:collapse; font-size:0.85rem;">
+          <thead>
+            <tr style="background:#f8fafc; color:var(--text-muted); border-bottom:1px solid var(--border-color); text-align:left;">
+              <th style="padding:12px 16px;">User</th>
+              <th style="padding:12px 16px;">Email & Phone</th>
+              <th style="padding:12px 16px; text-align:center;">Assigned Role</th>
+              <th style="padding:12px 16px; text-align:center;">Account Status</th>
+              <th style="padding:12px 16px;">Registered</th>
+              <th style="padding:12px 16px; text-align:right;">Role Actions</th>
+            </tr>
+          </thead>
+          <tbody id="users-tbody">
+            <tr>
+              <td colspan="6" style="padding:30px; text-align:center; color:var(--text-muted);">Loading users...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <script src="/static/js/api.js"></script>
+  <script src="/static/js/auth.js"></script>
+  <script>
+    async function loadUsers() {
+      if (!requireAuth(["admin"])) return;
+
+      const tbody = document.getElementById("users-tbody");
+      const roleFilter = document.getElementById("role-filter").value;
+
+      try {
+        let url = "/admin/users";
+        if (roleFilter) url += `?role=${roleFilter}`;
+
+        const users = await apiFetch(url);
+        if (users.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="6" style="padding:30px; text-align:center; color:var(--text-muted);">No users found.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = users.map(u => {
+          let roleBadge = "badge-approved";
+          if (u.role === "admin") roleBadge = "badge-pending";
+          else if (u.role === "rider") roleBadge = "badge-preparing";
+
+          return `
+            <tr style="border-bottom:1px solid #f1f5f9;">
+              <td style="padding:12px 16px; font-weight:700; color:var(--primary-dark);">${u.full_name}</td>
+              <td style="padding:12px 16px;">
+                <div>${u.email}</div>
+                <div style="font-size:0.75rem; color:var(--text-muted);">${u.phone}</div>
+              </td>
+              <td style="padding:12px 16px; text-align:center;">
+                <select onchange="changeRole(${u.id}, this.value)" style="font-size:0.8rem; padding:4px 8px; border-radius:4px; border:1px solid var(--border-color); font-weight:600;">
+                  <option value="customer" ${u.role === 'customer' ? 'selected' : ''}>Customer</option>
+                  <option value="shopkeeper" ${u.role === 'shopkeeper' ? 'selected' : ''}>Shopkeeper</option>
+                  <option value="rider" ${u.role === 'rider' ? 'selected' : ''}>Rider</option>
+                  <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
+                </select>
+              </td>
+              <td style="padding:12px 16px; text-align:center;">
+                <span class="badge ${u.is_active ? 'badge-approved' : 'badge-cancelled'}">
+                  ${u.is_active ? 'Active' : 'Suspended'}
+                </span>
+              </td>
+              <td style="padding:12px 16px; color:var(--text-muted);">${new Date(u.created_at).toLocaleDateString()}</td>
+              <td style="padding:12px 16px; text-align:right;">
+                <button onclick="toggleUserStatus(${u.id}, ${!u.is_active})" class="btn btn-outline btn-sm" style="font-size:0.75rem; color:${u.is_active ? 'var(--danger)' : 'var(--secondary)'};">
+                  ${u.is_active ? 'Suspend Account' : 'Reactivate Account'}
+                </button>
+              </td>
+            </tr>
+          `;
+        }).join("");
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="6" style="padding:20px; color:red; text-align:center;">Failed to load users: ${err.message}</td></tr>`;
+      }
+    }
+
+    async function changeRole(userId, newRole) {
+      if (!confirm(`Are you sure you want to change this user's role to '${newRole}'?`)) {
+        loadUsers();
+        return;
+      }
+      try {
+        await apiFetch(`/admin/users/${userId}/role?role=${newRole}`, { method: "PUT" });
+        alert("Role updated successfully!");
+        loadUsers();
+      } catch (err) {
+        alert(err.message || "Failed to update role");
+        loadUsers();
+      }
+    }
+
+    async function toggleUserStatus(userId, shouldBeActive) {
+      const action = shouldBeActive ? "reactivate" : "suspend";
+      if (!confirm(`Are you sure you want to ${action} this account?`)) return;
+      try {
+        await apiFetch(`/admin/users/${userId}/status?is_active=${shouldBeActive}`, { method: "PUT" });
+        loadUsers();
+      } catch (err) {
+        alert(err.message || "Failed to update account status");
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", loadUsers);
+  </script>
+</body>
+</html>

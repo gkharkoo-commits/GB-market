@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Orders — GB MARKET</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body style="background-color: #f8fafc;">
+
+  <header class="navbar">
+    <div class="container nav-container">
+      <a href="/static/index.html" class="brand-logo">
+        <i class="fa-solid fa-mountain-sun" style="color:#38bdf8;"></i>
+        <span>GB MARKET</span>
+      </a>
+
+      <div class="nav-actions">
+        <div id="nav-auth-slot"></div>
+        <a href="/static/cart.html" class="cart-icon-btn">
+          <i class="fa-solid fa-cart-shopping"></i>
+          <span>Cart</span>
+          <span id="cart-count-badge" class="cart-badge">0</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container" style="padding: 36px 16px; max-width: 900px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+      <h1 style="font-size: 1.8rem; font-weight: 800; color: var(--primary-dark);">
+        <i class="fa-solid fa-box" style="color:var(--secondary);"></i> My Orders
+      </h1>
+      <a href="/static/index.html" class="btn btn-outline btn-sm"><i class="fa-solid fa-plus"></i> Shop More</a>
+    </div>
+
+    <div id="orders-loading" style="text-align: center; padding: 40px 0;">
+      <i class="fa-solid fa-spinner fa-spin fa-2x" style="color:var(--secondary);"></i>
+      <p style="margin-top:10px; color:var(--text-muted);">Fetching your orders...</p>
+    </div>
+
+    <div id="orders-list" style="display:flex; flex-direction:column; gap:18px;">
+      <!-- Populated via API -->
+    </div>
+  </main>
+
+  <script src="/static/js/api.js"></script>
+  <script src="/static/js/auth.js"></script>
+  <script>
+    async function loadOrders() {
+      if (!requireAuth(["customer", "shopkeeper", "rider", "admin"])) return;
+
+      const loading = document.getElementById("orders-loading");
+      const list = document.getElementById("orders-list");
+
+      try {
+        const orders = await apiFetch("/orders/my-orders");
+        loading.style.display = "none";
+
+        if (!orders || orders.length === 0) {
+          list.innerHTML = `
+            <div class="card" style="text-align:center; padding:50px 20px;">
+              <i class="fa-solid fa-box-open fa-3x" style="color:var(--text-light); margin-bottom:12px;"></i>
+              <h3 style="color:var(--primary-dark);">No Orders Placed Yet</h3>
+              <p class="text-muted" style="margin:6px 0 16px;">You haven't ordered any products from Gilgit-Baltistan merchants yet.</p>
+              <a href="/static/index.html" class="btn btn-primary btn-sm">Explore Marketplace</a>
+            </div>
+          `;
+          return;
+        }
+
+        list.innerHTML = orders.map(o => {
+          let badgeClass = "badge-pending";
+          if (o.status === "Delivered") badgeClass = "badge-delivered";
+          else if (o.status === "Cancelled") badgeClass = "badge-cancelled";
+          else if (o.status === "Confirmed" || o.status === "Preparing") badgeClass = "badge-preparing";
+
+          const dateStr = new Date(o.created_at).toLocaleDateString("en-PK", {
+            day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit"
+          });
+
+          return `
+            <div class="card" style="box-shadow:var(--shadow-sm); transition:transform 0.2s;">
+              <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-color); padding-bottom:12px; margin-bottom:14px; flex-wrap:wrap; gap:8px;">
+                <div>
+                  <span style="font-weight:800; color:var(--primary-dark); font-size:1.05rem;">${o.order_number}</span>
+                  <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">Placed on ${dateStr}</div>
+                </div>
+                <div style="display:flex; align-items:center; gap:12px;">
+                  <span class="badge ${badgeClass}" style="font-size:0.8rem;">${o.status}</span>
+                  <span style="font-weight:800; font-size:1.15rem; color:var(--secondary);">PKR ${o.total_amount.toLocaleString()}</span>
+                </div>
+              </div>
+
+              <!-- Items Summary -->
+              <div style="margin-bottom:14px;">
+                ${o.items.map(it => `
+                  <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:4px;">
+                    <span style="color:var(--text-main);">${it.quantity}x ${it.product_title}</span>
+                    <span style="font-weight:600;">PKR ${it.subtotal.toLocaleString()}</span>
+                  </div>
+                `).join("")}
+              </div>
+
+              <!-- Footer details & button -->
+              <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #f1f5f9; padding-top:12px; font-size:0.85rem;">
+                <span style="color:var(--text-muted);">
+                  <i class="fa-solid fa-location-dot" style="color:var(--secondary);"></i> ${o.delivery_locality}, ${o.delivery_city} &bull; ${o.payment_method}
+                </span>
+                <a href="/static/order-detail.html?id=${o.id}" class="btn btn-outline btn-sm" style="font-weight:700;">
+                  <i class="fa-solid fa-timeline"></i> Track & Details &rarr;
+                </a>
+              </div>
+            </div>
+          `;
+        }).join("");
+      } catch (err) {
+        loading.innerHTML = `<p style="color:red;">Error loading orders: ${err.message}</p>`;
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", loadOrders);
+  </script>
+</body>
+</html>

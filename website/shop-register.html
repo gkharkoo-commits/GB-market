@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register Shop — GB MARKET</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header class="navbar">
+    <div class="container nav-container">
+      <a href="/static/index.html" class="brand-logo">
+        <i class="fa-solid fa-mountain-sun" style="color:#38bdf8;"></i>
+        <span>GB MARKET</span>
+        <span class="brand-badge">Merchant Hub</span>
+      </a>
+
+      <div class="nav-actions">
+        <div id="nav-auth-slot"></div>
+        <a href="/static/index.html" class="nav-btn-link"><i class="fa-solid fa-arrow-left"></i> Back to Store</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container" style="padding: 40px 16px; max-width: 800px;">
+    
+    <!-- Status Container if Shop already applied -->
+    <div id="existing-shop-status" style="display:none; margin-bottom: 24px;"></div>
+
+    <!-- Registration Form Card -->
+    <div id="registration-card" class="card">
+      <div style="margin-bottom: 24px; text-align: center;">
+        <span class="badge badge-approved" style="font-size:0.8rem; margin-bottom:8px;">Seller Application</span>
+        <h1 style="color:var(--primary-dark); font-size:1.8rem; font-weight:800;">Register Your Shop in Gilgit-Baltistan</h1>
+        <p style="color:var(--text-muted); font-size:0.95rem; margin-top:6px;">
+          Reach thousands of local customers. Upload your shop details and exterior photo for administrative verification.
+        </p>
+      </div>
+
+      <div id="msg-box" style="display:none; padding:12px; border-radius:var(--radius-sm); margin-bottom:16px;"></div>
+
+      <form id="shop-form">
+        <h3 style="font-size:1.1rem; color:var(--primary); margin-bottom:14px; border-bottom:2px solid var(--border-color); padding-bottom:6px;">
+          1. Business & Owner Information
+        </h3>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+          <div class="form-group">
+            <label class="form-label">Shop Name *</label>
+            <input type="text" id="shop_name" class="form-control" placeholder="e.g. Karakoram Dry Fruit House" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Owner's Full Name *</label>
+            <input type="text" id="owner_name" class="form-control" placeholder="e.g. Muhammad Ali" required>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+          <div class="form-group">
+            <label class="form-label">Contact Mobile Number *</label>
+            <input type="tel" id="shop_phone" class="form-control" placeholder="e.g. 03451122334" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Primary Category *</label>
+            <select id="category_id" class="form-control" required>
+              <option value="">Select Category...</option>
+            </select>
+          </div>
+        </div>
+
+        <h3 style="font-size:1.1rem; color:var(--primary); margin:20px 0 14px; border-bottom:2px solid var(--border-color); padding-bottom:6px;">
+          2. Shop Location in Gilgit-Baltistan
+        </h3>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+          <div class="form-group">
+            <label class="form-label">City / District *</label>
+            <select id="shop_city" class="form-control" required>
+              <option value="">Choose City...</option>
+              <option value="Gilgit">Gilgit</option>
+              <option value="Skardu">Skardu</option>
+              <option value="Hunza">Hunza</option>
+              <option value="Nagar">Nagar</option>
+              <option value="Ghizer">Ghizer</option>
+              <option value="Diamer">Diamer</option>
+              <option value="Astore">Astore</option>
+              <option value="Ghanche">Ghanche</option>
+              <option value="Shigar">Shigar</option>
+              <option value="Kharmang">Kharmang</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Locality / Bazar *</label>
+            <input type="text" id="shop_locality" class="form-control" placeholder="e.g. Naya Bazar, Skardu" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Complete Physical Address *</label>
+          <input type="text" id="shop_address" class="form-control" placeholder="Shop #, Street / Bazar, Market Name" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Nearby Landmark</label>
+          <input type="text" id="shop_landmark" class="form-control" placeholder="e.g. Near Yadgar Chowk or Jamia Masjid">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Shop Description *</label>
+          <textarea id="shop_description" class="form-control" rows="3" placeholder="Describe the products you specialize in, quality guarantees, and store history..." required></textarea>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+          <div class="form-group">
+            <label class="form-label">Opening Hours</label>
+            <input type="text" id="opening_hours" class="form-control" value="09:00 AM - 09:00 PM">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Available Delivery Methods</label>
+            <input type="text" id="delivery_methods" class="form-control" value="Store Pickup, Standard Delivery">
+          </div>
+        </div>
+
+        <h3 style="font-size:1.1rem; color:var(--primary); margin:20px 0 14px; border-bottom:2px solid var(--border-color); padding-bottom:6px;">
+          3. Verification Photos (Working File Uploads)
+        </h3>
+
+        <div class="form-group">
+          <label class="form-label">Shop Exterior / Front Photo * (Required)</label>
+          <input type="file" id="exterior_file" class="form-control" accept="image/*" required>
+          <div class="form-hint">Take a clear photo showing your shop signboard and storefront entrance.</div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+          <div class="form-group">
+            <label class="form-label">Shop Interior Photo (Optional)</label>
+            <input type="file" id="interior_file" class="form-control" accept="image/*">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Owner Profile Photo (Optional)</label>
+            <input type="file" id="owner_file" class="form-control" accept="image/*">
+          </div>
+        </div>
+
+        <div style="margin:20px 0; padding:12px; background:var(--bg-subtle); border-radius:var(--radius-sm); font-size:0.85rem;">
+          <label style="display:flex; align-items:flex-start; gap:8px; cursor:pointer;">
+            <input type="checkbox" id="terms_agree" required style="margin-top:3px;">
+            <span>I confirm that the provided shop information is authentic and accurate. I agree to GB MARKET vendor terms, 5% standard marketplace commission on completed orders, and fair pricing policies.</span>
+          </label>
+        </div>
+
+        <button type="submit" id="submit-btn" class="btn btn-primary btn-block" style="padding:12px;">
+          <i class="fa-solid fa-paper-plane"></i> Submit Shop Registration for Review
+        </button>
+      </form>
+    </div>
+  </main>
+
+  <script src="/static/js/api.js"></script>
+  <script src="/static/js/auth.js"></script>
+  <script>
+    async function initPage() {
+      // Must be logged in
+      const user = getCurrentUser();
+      const token = getAuthToken();
+      if (!user || !token) {
+        window.location.href = `/static/login.html?redirect=${encodeURIComponent(window.location.pathname)}`;
+        return;
+      }
+
+      // Populate categories
+      try {
+        const categories = await apiFetch("/categories/");
+        const catSelect = document.getElementById("category_id");
+        categories.forEach(c => {
+          const opt = document.createElement("option");
+          opt.value = c.id;
+          opt.textContent = c.name;
+          catSelect.appendChild(opt);
+        });
+      } catch (e) {
+        console.error("Failed to load categories:", e);
+      }
+
+      // Check if user already has a registered shop
+      try {
+        const myShop = await apiFetch("/shops/my-shop");
+        if (myShop && myShop.id) {
+          renderExistingShopStatus(myShop);
+        }
+      } catch (e) {
+        // No shop registered yet
+      }
+    }
+
+    function renderExistingShopStatus(shop) {
+      const statusContainer = document.getElementById("existing-shop-status");
+      const regCard = document.getElementById("registration-card");
+
+      let badgeClass = "badge-pending";
+      let statusIcon = "fa-clock";
+      let statusDesc = "Your application is currently under review by the GB MARKET administrator. You will be notified once reviewed.";
+
+      if (shop.verification_status === "approved") {
+        badgeClass = "badge-approved";
+        statusIcon = "fa-circle-check";
+        statusDesc = "Congratulations! Your shop is fully approved and active. You can now manage products and process orders.";
+      } else if (shop.verification_status === "rejected") {
+        badgeClass = "badge-cancelled";
+        statusIcon = "fa-circle-xmark";
+        statusDesc = `Your shop application was rejected. Reason: ${shop.verification_notes || "Documentation incomplete"}. Please contact support.`;
+      } else if (shop.verification_status === "suspended") {
+        badgeClass = "badge-cancelled";
+        statusIcon = "fa-triangle-exclamation";
+        statusDesc = `Your shop has been suspended by administration. Reason: ${shop.verification_notes || "Policy review"}.`;
+      }
+
+      statusContainer.innerHTML = `
+        <div class="card" style="border-left: 5px solid var(--secondary); box-shadow: var(--shadow-md);">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <h2 style="color:var(--primary-dark); font-size:1.35rem; font-weight:800;">
+              <i class="fa-solid fa-store" style="color:var(--secondary);"></i> ${shop.name}
+            </h2>
+            <span class="badge ${badgeClass}" style="font-size:0.85rem; text-transform:uppercase;">
+              <i class="fa-solid ${statusIcon}"></i> ${shop.verification_status}
+            </span>
+          </div>
+          <p style="color:var(--text-main); font-size:0.95rem; line-height:1.5;">${statusDesc}</p>
+          <div style="margin-top:14px; font-size:0.85rem; color:var(--text-muted);">
+            <strong>Location:</strong> ${shop.locality}, ${shop.city} &bull; <strong>Contact:</strong> ${shop.phone}
+          </div>
+          ${shop.verification_status === "approved" ? `
+            <div style="margin-top:18px; display:flex; gap:10px;">
+              <a href="/static/seller/index.html" class="btn btn-primary btn-sm"><i class="fa-solid fa-gauge"></i> Open Seller Dashboard</a>
+              <a href="/static/seller/products.html" class="btn btn-success btn-sm"><i class="fa-solid fa-plus"></i> Add Products</a>
+            </div>
+          ` : ''}
+        </div>
+      `;
+      statusContainer.style.display = "block";
+
+      // Hide registration form if already applied
+      regCard.style.display = "none";
+    }
+
+    document.getElementById("shop-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const msgBox = document.getElementById("msg-box");
+      const btn = document.getElementById("submit-btn");
+      msgBox.style.display = "none";
+
+      const extFileInput = document.getElementById("exterior_file");
+      if (!extFileInput.files || extFileInput.files.length === 0) {
+        alert("Please select a shop exterior photo.");
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Uploading Photos & Submitting...`;
+
+      try {
+        // 1. Upload exterior photo
+        const extUpload = await uploadImageFile(extFileInput.files[0], "shops");
+
+        // 2. Upload interior photo if provided
+        let intUrl = null;
+        const intFileInput = document.getElementById("interior_file");
+        if (intFileInput.files && intFileInput.files.length > 0) {
+          const intUpload = await uploadImageFile(intFileInput.files[0], "shops");
+          intUrl = intUpload.url;
+        }
+
+        // 3. Upload owner photo if provided
+        let ownerUrl = null;
+        const ownerFileInput = document.getElementById("owner_file");
+        if (ownerFileInput.files && ownerFileInput.files.length > 0) {
+          const ownerUpload = await uploadImageFile(ownerFileInput.files[0], "profiles");
+          ownerUrl = ownerUpload.url;
+        }
+
+        // 4. Submit shop registration
+        const catId = document.getElementById("category_id").value;
+        const payload = {
+          name: document.getElementById("shop_name").value.trim(),
+          owner_name: document.getElementById("owner_name").value.trim(),
+          phone: document.getElementById("shop_phone").value.trim(),
+          category_id: catId ? parseInt(catId) : null,
+          city: document.getElementById("shop_city").value,
+          locality: document.getElementById("shop_locality").value.trim(),
+          address: document.getElementById("shop_address").value.trim(),
+          landmark: document.getElementById("shop_landmark").value.trim() || null,
+          description: document.getElementById("shop_description").value.trim(),
+          opening_hours: document.getElementById("opening_hours").value.trim(),
+          available_delivery_methods: document.getElementById("delivery_methods").value.trim(),
+          exterior_image: extUpload.url,
+          interior_image: intUrl,
+          owner_image: ownerUrl
+        };
+
+        const newShop = await apiFetch("/shops/register", {
+          method: "POST",
+          body: JSON.stringify(payload)
+        });
+
+        // Update local user role to shopkeeper
+        const user = getCurrentUser();
+        if (user) {
+          user.role = "shopkeeper";
+          setCurrentUser(user);
+        }
+
+        renderExistingShopStatus(newShop);
+      } catch (err) {
+        msgBox.textContent = err.message || "Failed to submit shop registration";
+        msgBox.style.background = "#fee2e2";
+        msgBox.style.color = "#b91c1c";
+        msgBox.style.display = "block";
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-paper-plane"></i> Submit Shop Registration for Review`;
+      }
+    });
+
+    document.addEventListener("DOMContentLoaded", initPage);
+  </script>
+</body>
+</html>

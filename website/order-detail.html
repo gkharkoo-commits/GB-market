@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Tracking & Details — GB MARKET</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="/static/css/styles.css">
+  <style>
+    .timeline {
+      position: relative;
+      padding-left: 28px;
+      margin-top: 16px;
+    }
+    .timeline::before {
+      content: '';
+      position: absolute;
+      top: 6px;
+      bottom: 6px;
+      left: 8px;
+      width: 2px;
+      background: #cbd5e1;
+    }
+    .timeline-step {
+      position: relative;
+      margin-bottom: 20px;
+    }
+    .timeline-dot {
+      position: absolute;
+      left: -28px;
+      top: 3px;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: white;
+      border: 3px solid #94a3b8;
+    }
+    .timeline-step.active .timeline-dot {
+      border-color: var(--secondary);
+      background: var(--secondary);
+    }
+  </style>
+</head>
+<body style="background-color: #f8fafc;">
+
+  <header class="navbar">
+    <div class="container nav-container">
+      <a href="/static/index.html" class="brand-logo">
+        <i class="fa-solid fa-mountain-sun" style="color:#38bdf8;"></i>
+        <span>GB MARKET</span>
+      </a>
+
+      <div class="nav-actions">
+        <div id="nav-auth-slot"></div>
+        <a href="/static/my-orders.html" class="nav-btn-link"><i class="fa-solid fa-arrow-left"></i> All Orders</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container" style="padding: 36px 16px; max-width: 900px;">
+    
+    <!-- Success Banner if just placed -->
+    <div id="placed-alert" style="display:none; background:#ecfdf5; border:1px solid #a7f3d0; color:#065f46; padding:16px; border-radius:var(--radius-md); margin-bottom:24px; text-align:center;">
+      <i class="fa-solid fa-circle-check fa-2x" style="color:var(--secondary); margin-bottom:8px;"></i>
+      <h2 style="font-size:1.3rem; font-weight:800;">Thank You! Your Order Has Been Placed</h2>
+      <p style="font-size:0.9rem; margin-top:4px;">Our local Gilgit-Baltistan merchants are preparing your items. You will pay Cash on Delivery.</p>
+    </div>
+
+    <div id="order-loading" style="text-align: center; padding: 40px 0;">
+      <i class="fa-solid fa-spinner fa-spin fa-2x" style="color:var(--secondary);"></i>
+      <p style="margin-top:10px; color:var(--text-muted);">Loading order details...</p>
+    </div>
+
+    <div id="order-view" style="display:none; gap:24px; flex-direction:column;">
+      
+      <!-- Top Order Overview Card -->
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; border-bottom:1px solid var(--border-color); padding-bottom:14px; margin-bottom:16px;">
+          <div>
+            <span style="font-size:0.8rem; color:var(--text-muted); text-transform:uppercase; font-weight:700;">Order ID</span>
+            <h1 id="order-number" style="font-size:1.4rem; font-weight:800; color:var(--primary-dark);"></h1>
+            <div id="order-date" style="font-size:0.8rem; color:var(--text-muted); margin-top:2px;"></div>
+          </div>
+          <div style="text-align:right;">
+            <div id="order-status-badge" class="badge" style="font-size:0.9rem; padding:6px 12px;"></div>
+            <div id="order-total" style="font-size:1.5rem; font-weight:800; color:var(--secondary); margin-top:4px;"></div>
+          </div>
+        </div>
+
+        <!-- Progress Timeline -->
+        <h3 style="font-size:1.05rem; font-weight:700; color:var(--primary-dark); margin-bottom:10px;">
+          <i class="fa-solid fa-timeline" style="color:var(--secondary);"></i> Order Status History
+        </h3>
+        <div id="order-timeline" class="timeline">
+          <!-- Populated from status history -->
+        </div>
+
+        <!-- Cancellation Action -->
+        <div id="cancel-action-box" style="margin-top:20px; padding:12px 16px; background:#fff1f2; border:1px solid #fecdd3; border-radius:var(--radius-sm); display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div style="font-weight:700; color:#9f1239; font-size:0.9rem;">Need to cancel this order?</div>
+            <div style="font-size:0.75rem; color:#be123c;">You can request cancellation before merchant dispatches your package.</div>
+          </div>
+          <button onclick="openCancelModal()" class="btn btn-danger btn-sm">Request Cancellation</button>
+        </div>
+      </div>
+
+      <!-- Items & Multi-Shop Groups Card -->
+      <div class="card">
+        <h3 style="font-size:1.15rem; font-weight:700; color:var(--primary-dark); margin-bottom:16px; border-bottom:1px solid var(--border-color); padding-bottom:8px;">
+          Fulfillment & Items Breakdown
+        </h3>
+
+        <div id="shop-groups-container" style="display:flex; flex-direction:column; gap:20px;">
+          <!-- Shop groups -->
+        </div>
+      </div>
+
+      <!-- Delivery & Payment Summary Card -->
+      <div class="card" style="display:grid; grid-template-columns: 1fr 1fr; gap:24px;">
+        <div>
+          <h4 style="font-weight:700; color:var(--primary-dark); margin-bottom:8px;">
+            <i class="fa-solid fa-location-dot" style="color:var(--secondary);"></i> Delivery Details
+          </h4>
+          <div id="delivery-info" style="font-size:0.9rem; line-height:1.6; color:var(--text-main);"></div>
+        </div>
+        <div>
+          <h4 style="font-weight:700; color:var(--primary-dark); margin-bottom:8px;">
+            <i class="fa-solid fa-receipt" style="color:var(--secondary);"></i> Payment & Financials
+          </h4>
+          <div id="payment-info" style="font-size:0.9rem; line-height:1.6; color:var(--text-main);"></div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Cancellation Modal -->
+  <div id="cancel-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center; padding:16px;">
+    <div class="card" style="width:100%; max-width:440px; box-shadow:var(--shadow-lg);">
+      <h3 style="font-weight:800; color:var(--primary-dark); margin-bottom:10px;">Request Order Cancellation</h3>
+      <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:16px;">
+        Please state your reason for cancellation. If your order is not yet confirmed by the vendor, it will be cancelled immediately and reserved stock restored.
+      </p>
+
+      <div class="form-group">
+        <label class="form-label">Cancellation Reason *</label>
+        <textarea id="cancel-reason" class="form-control" rows="3" placeholder="e.g. Ordered by mistake, wrong delivery address..." required></textarea>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+        <button onclick="closeCancelModal()" class="btn btn-outline btn-sm">Dismiss</button>
+        <button onclick="submitCancellation()" class="btn btn-danger btn-sm">Confirm Cancellation</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/js/api.js"></script>
+  <script src="/static/js/auth.js"></script>
+  <script>
+    let currentOrder = null;
+
+    async function initOrderDetail() {
+      if (!requireAuth()) return;
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const orderId = urlParams.get("id");
+      const placed = urlParams.get("placed");
+
+      if (placed === "true") {
+        document.getElementById("placed-alert").style.display = "block";
+      }
+
+      if (!orderId) {
+        window.location.href = "/static/my-orders.html";
+        return;
+      }
+
+      try {
+        currentOrder = await apiFetch(`/orders/${orderId}`);
+        renderOrder(currentOrder);
+      } catch (err) {
+        document.getElementById("order-loading").innerHTML = `
+          <div style="color:red;">
+            <p>Could not load order details: ${err.message}</p>
+            <a href="/static/my-orders.html" class="btn btn-outline btn-sm" style="margin-top:10px;">Back to Orders</a>
+          </div>
+        `;
+      }
+    }
+
+    function renderOrder(o) {
+      document.getElementById("order-loading").style.display = "none";
+      document.getElementById("order-view").style.display = "flex";
+
+      document.getElementById("order-number").textContent = o.order_number;
+      document.getElementById("order-date").textContent = "Placed on " + new Date(o.created_at).toLocaleString();
+      document.getElementById("order-total").textContent = `PKR ${o.total_amount.toLocaleString()}`;
+
+      // Status badge
+      const badge = document.getElementById("order-status-badge");
+      badge.textContent = o.status;
+      badge.className = "badge " + (
+        o.status === "Delivered" ? "badge-delivered" :
+        o.status === "Cancelled" ? "badge-cancelled" :
+        o.status === "Pending Confirmation" ? "badge-pending" : "badge-preparing"
+      );
+
+      // Hide cancellation box if already delivered or cancelled
+      if (["Delivered", "Cancelled", "Out for Delivery"].includes(o.status)) {
+        document.getElementById("cancel-action-box").style.display = "none";
+      }
+
+      // Render timeline
+      const timeline = document.getElementById("order-timeline");
+      if (o.status_history && o.status_history.length > 0) {
+        timeline.innerHTML = o.status_history.map(sh => `
+          <div class="timeline-step active">
+            <div class="timeline-dot"></div>
+            <div style="font-weight:700; color:var(--primary-dark); font-size:0.9rem;">${sh.new_status}</div>
+            <div style="font-size:0.75rem; color:var(--text-muted);">${new Date(sh.created_at).toLocaleString()} &bull; by ${sh.changed_by_role}</div>
+            ${sh.notes ? `<div style="font-size:0.8rem; color:var(--text-main); margin-top:2px;">${sh.notes}</div>` : ''}
+          </div>
+        `).join("");
+      } else {
+        timeline.innerHTML = `<p class="text-muted" style="font-size:0.85rem;">No status history recorded yet.</p>`;
+      }
+
+      // Render Shop Groups & Items
+      const groupsContainer = document.getElementById("shop-groups-container");
+      groupsContainer.innerHTML = o.shop_groups.map(sg => `
+        <div style="background:#f8fafc; border:1px solid var(--border-color); border-radius:var(--radius-sm); padding:16px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <div style="font-weight:700; color:var(--primary-dark);">
+              <i class="fa-solid fa-store" style="color:var(--secondary);"></i> Shop: ${sg.shop_name}
+            </div>
+            <span class="badge badge-preparing">${sg.status}</span>
+          </div>
+
+          <table style="width:100%; border-collapse:collapse; font-size:0.85rem;">
+            <thead>
+              <tr style="text-align:left; color:var(--text-muted); border-bottom:1px solid var(--border-color);">
+                <th style="padding:6px 0;">Item</th>
+                <th style="padding:6px 10px; text-align:center;">Qty</th>
+                <th style="padding:6px 10px; text-align:right;">Unit Price</th>
+                <th style="padding:6px 0; text-align:right;">Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${sg.items.map(it => `
+                <tr style="border-bottom:1px solid #f1f5f9;">
+                  <td style="padding:8px 0; font-weight:600;">${it.product_title}</td>
+                  <td style="padding:8px 10px; text-align:center;">${it.quantity}</td>
+                  <td style="padding:8px 10px; text-align:right;">PKR ${it.unit_price.toLocaleString()}</td>
+                  <td style="padding:8px 0; text-align:right; font-weight:700;">PKR ${it.subtotal.toLocaleString()}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+      `).join("");
+
+      // Delivery & Payment info
+      document.getElementById("delivery-info").innerHTML = `
+        <strong>Recipient:</strong> ${o.customer_name}<br>
+        <strong>Phone:</strong> ${o.customer_phone}<br>
+        <strong>Address:</strong> ${o.delivery_address}<br>
+        <strong>Locality/City:</strong> ${o.delivery_locality}, ${o.delivery_city}<br>
+        ${o.delivery_landmark ? `<strong>Landmark:</strong> ${o.delivery_landmark}<br>` : ''}
+        ${o.customer_notes ? `<strong>Notes:</strong> <em>${o.customer_notes}</em>` : ''}
+      `;
+
+      document.getElementById("payment-info").innerHTML = `
+        <strong>Payment Method:</strong> ${o.payment_method}<br>
+        <strong>Payment Status:</strong> ${o.payment_status}<br>
+        <strong>Items Subtotal:</strong> PKR ${o.subtotal.toLocaleString()}<br>
+        <strong>Delivery Fee:</strong> PKR ${o.delivery_fee.toLocaleString()}<br>
+        <strong>Grand Total:</strong> PKR ${o.total_amount.toLocaleString()}
+      `;
+    }
+
+    function openCancelModal() {
+      document.getElementById("cancel-modal").style.display = "flex";
+    }
+
+    function closeCancelModal() {
+      document.getElementById("cancel-modal").style.display = "none";
+    }
+
+    async function submitCancellation() {
+      const reason = document.getElementById("cancel-reason").value.trim();
+      if (!reason || reason.length < 5) {
+        alert("Please enter a valid cancellation reason (min 5 chars).");
+        return;
+      }
+
+      try {
+        const res = await apiFetch("/orders/cancel-request", {
+          method: "POST",
+          body: JSON.stringify({
+            order_id: currentOrder.id,
+            reason
+          })
+        });
+
+        alert(res.message || "Cancellation processed");
+        closeCancelModal();
+        window.location.reload();
+      } catch (err) {
+        alert(err.message || "Could not process cancellation");
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", initOrderDetail);
+  </script>
+</body>
+</html>

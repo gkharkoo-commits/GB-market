@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shop Applications Review — GB MARKET Admin</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body style="background-color: #f1f5f9;">
+
+  <header class="navbar" style="background-color: #091a2b;">
+    <div class="container nav-container">
+      <a href="/static/admin/index.html" class="brand-logo">
+        <i class="fa-solid fa-gauge-high" style="color:#fbbf24;"></i>
+        <span>GB MARKET ADMIN</span>
+      </a>
+
+      <div class="nav-actions">
+        <div id="nav-auth-slot"></div>
+        <a href="/static/admin/index.html" class="nav-btn-link"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+      </div>
+    </div>
+
+    <!-- Admin Nav Tabs -->
+    <div class="subnav" style="background-color: #030712;">
+      <div class="container subnav-container">
+        <div class="subnav-links">
+          <a href="/static/admin/index.html"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+          <a href="/static/admin/shops.html" class="active"><i class="fa-solid fa-store"></i> Shop Applications</a>
+          <a href="/static/admin/orders.html"><i class="fa-solid fa-receipt"></i> Orders & Cancellations</a>
+          <a href="/static/admin/users.html"><i class="fa-solid fa-users"></i> Users & Roles</a>
+          <a href="/static/admin/settings.html"><i class="fa-solid fa-sliders"></i> Marketplace Settings</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container" style="padding: 32px 16px;">
+    
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:12px;">
+      <div>
+        <h1 style="font-size:1.8rem; font-weight:800; color:var(--primary-dark);">Shopkeeper Applications</h1>
+        <p style="color:var(--text-muted); font-size:0.9rem;">Review submitted shop exterior photos, trade locations, and merchant details</p>
+      </div>
+      <div>
+        <select id="status-filter" onchange="loadShops()" class="form-control" style="font-size:0.85rem; padding:6px 12px;">
+          <option value="">All Applications</option>
+          <option value="pending" selected>Pending Review</option>
+          <option value="approved">Approved Shops</option>
+          <option value="rejected">Rejected</option>
+          <option value="suspended">Suspended</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="card" style="padding:0; overflow:hidden;">
+      <div style="overflow-x:auto;">
+        <table style="width:100%; border-collapse:collapse; font-size:0.85rem;">
+          <thead>
+            <tr style="background:#f8fafc; color:var(--text-muted); border-bottom:1px solid var(--border-color); text-align:left;">
+              <th style="padding:12px 16px;">Shop</th>
+              <th style="padding:12px 16px;">Owner & Contact</th>
+              <th style="padding:12px 16px;">Location</th>
+              <th style="padding:12px 16px; text-align:center;">Status</th>
+              <th style="padding:12px 16px;">Applied On</th>
+              <th style="padding:12px 16px; text-align:right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="shops-tbody">
+            <tr>
+              <td colspan="6" style="padding:30px; text-align:center; color:var(--text-muted);">Loading shop applications...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Review Modal -->
+  <div id="review-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center; padding:16px; overflow-y:auto;">
+    <div class="card" style="width:100%; max-width:650px; max-height:90vh; overflow-y:auto; box-shadow:var(--shadow-lg);">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border-bottom:1px solid var(--border-color); padding-bottom:8px;">
+        <h3 id="modal-shop-name" style="font-weight:800; color:var(--primary-dark); font-size:1.3rem;">Shop Verification Details</h3>
+        <button onclick="closeReviewModal()" style="background:none; border:none; font-size:1.2rem; cursor:pointer;">&times;</button>
+      </div>
+
+      <input type="hidden" id="modal-shop-id">
+
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-bottom:16px;">
+        <div>
+          <label style="font-size:0.75rem; color:var(--text-muted); font-weight:700; text-transform:uppercase;">Exterior Storefront Photo</label>
+          <div style="width:100%; height:180px; background:#f8fafc; border-radius:var(--radius-sm); overflow:hidden; border:1px solid var(--border-color); margin-top:4px;">
+            <img id="modal-exterior-img" src="" style="width:100%; height:100%; object-fit:cover;">
+          </div>
+        </div>
+        <div style="font-size:0.85rem; line-height:1.6; color:var(--text-main);" id="modal-shop-details">
+          <!-- Text details -->
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Review Decision *</label>
+        <select id="modal-decision" class="form-control">
+          <option value="approved">Approve (Authorize Merchant to Sell)</option>
+          <option value="rejected">Reject (Documentation / Location Invalid)</option>
+          <option value="suspended">Suspend (Temporarily Halt Sales)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Verification Notes / Justification</label>
+        <textarea id="modal-notes" class="form-control" rows="2" placeholder="Record verification remarks (visible to merchant)"></textarea>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:16px;">
+        <button onclick="closeReviewModal()" class="btn btn-outline btn-sm">Cancel</button>
+        <button onclick="submitReview()" class="btn btn-primary btn-sm"><i class="fa-solid fa-check"></i> Submit Decision</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/js/api.js"></script>
+  <script src="/static/js/auth.js"></script>
+  <script>
+    let allShops = [];
+
+    async function loadShops() {
+      if (!requireAuth(["admin"])) return;
+
+      const tbody = document.getElementById("shops-tbody");
+      const filter = document.getElementById("status-filter").value;
+
+      try {
+        let url = "/shops/admin/applications";
+        if (filter) url += `?status_filter=${encodeURIComponent(filter)}`;
+
+        allShops = await apiFetch(url);
+
+        if (allShops.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="6" style="padding:40px; text-align:center; color:var(--text-muted);">No shop applications found for this filter.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = allShops.map(s => {
+          let badgeClass = "badge-pending";
+          if (s.verification_status === "approved") badgeClass = "badge-approved";
+          else if (s.verification_status === "rejected" || s.verification_status === "suspended") badgeClass = "badge-cancelled";
+
+          return `
+            <tr style="border-bottom:1px solid #f1f5f9;">
+              <td style="padding:12px 16px;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                  <img src="${s.exterior_image}" style="width:40px; height:40px; object-fit:cover; border-radius:4px; border:1px solid var(--border-color);">
+                  <div>
+                    <div style="font-weight:700; color:var(--primary-dark);">${s.name}</div>
+                    <div style="font-size:0.75rem; color:var(--text-muted);">${s.available_delivery_methods}</div>
+                  </div>
+                </div>
+              </td>
+              <td style="padding:12px 16px;">
+                <strong>${s.owner_name}</strong><br>
+                <span style="color:var(--text-muted);">${s.phone}</span>
+              </td>
+              <td style="padding:12px 16px;">${s.locality}, ${s.city}</td>
+              <td style="padding:12px 16px; text-align:center;">
+                <span class="badge ${badgeClass}">${s.verification_status}</span>
+              </td>
+              <td style="padding:12px 16px; color:var(--text-muted);">${new Date(s.created_at).toLocaleDateString()}</td>
+              <td style="padding:12px 16px; text-align:right;">
+                <button onclick="openReviewModal(${s.id})" class="btn btn-outline btn-sm">
+                  <i class="fa-solid fa-clipboard-check"></i> Review & Decision
+                </button>
+              </td>
+            </tr>
+          `;
+        }).join("");
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="6" style="padding:20px; color:red; text-align:center;">Error: ${err.message}</td></tr>`;
+      }
+    }
+
+    function openReviewModal(shopId) {
+      const shop = allShops.find(s => s.id === shopId);
+      if (!shop) return;
+
+      document.getElementById("modal-shop-id").value = shop.id;
+      document.getElementById("modal-shop-name").textContent = shop.name;
+      document.getElementById("modal-exterior-img").src = shop.exterior_image;
+
+      document.getElementById("modal-shop-details").innerHTML = `
+        <strong>Owner:</strong> ${shop.owner_name}<br>
+        <strong>Phone:</strong> ${shop.phone}<br>
+        <strong>Address:</strong> ${shop.address}, ${shop.locality}, ${shop.city}<br>
+        ${shop.landmark ? `<strong>Landmark:</strong> ${shop.landmark}<br>` : ''}
+        <strong>Hours:</strong> ${shop.opening_hours}<br>
+        <strong>Description:</strong> ${shop.description}<br>
+        <strong>Current Status:</strong> <span class="badge badge-approved">${shop.verification_status}</span>
+      `;
+
+      document.getElementById("modal-decision").value = shop.verification_status === "pending" ? "approved" : shop.verification_status;
+      document.getElementById("modal-notes").value = shop.verification_notes || "";
+      document.getElementById("review-modal").style.display = "flex";
+    }
+
+    function closeReviewModal() {
+      document.getElementById("review-modal").style.display = "none";
+    }
+
+    async function submitReview() {
+      const shopId = document.getElementById("modal-shop-id").value;
+      const status = document.getElementById("modal-decision").value;
+      const notes = document.getElementById("modal-notes").value.trim();
+
+      try {
+        await apiFetch(`/shops/admin/${shopId}/review`, {
+          method: "PUT",
+          body: JSON.stringify({
+            status,
+            verification_notes: notes || null
+          })
+        });
+
+        alert("Shop review decision recorded successfully!");
+        closeReviewModal();
+        loadShops();
+      } catch (err) {
+        alert(err.message || "Failed to record review decision");
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", loadShops);
+  </script>
+</body>
+</html>

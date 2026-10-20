@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Marketplace Settings — GB MARKET Admin</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body style="background-color: #f1f5f9;">
+
+  <header class="navbar" style="background-color: #091a2b;">
+    <div class="container nav-container">
+      <a href="/static/admin/index.html" class="brand-logo">
+        <i class="fa-solid fa-gauge-high" style="color:#fbbf24;"></i>
+        <span>GB MARKET ADMIN</span>
+      </a>
+
+      <div class="nav-actions">
+        <div id="nav-auth-slot"></div>
+        <a href="/static/admin/index.html" class="nav-btn-link"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+      </div>
+    </div>
+
+    <!-- Admin Nav Tabs -->
+    <div class="subnav" style="background-color: #030712;">
+      <div class="container subnav-container">
+        <div class="subnav-links">
+          <a href="/static/admin/index.html"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+          <a href="/static/admin/shops.html"><i class="fa-solid fa-store"></i> Shop Applications</a>
+          <a href="/static/admin/orders.html"><i class="fa-solid fa-receipt"></i> Orders & Cancellations</a>
+          <a href="/static/admin/users.html"><i class="fa-solid fa-users"></i> Users & Roles</a>
+          <a href="/static/admin/settings.html" class="active"><i class="fa-solid fa-sliders"></i> Marketplace Settings</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container" style="padding: 32px 16px; max-width: 850px;">
+    
+    <div style="margin-bottom: 24px;">
+      <h1 style="font-size:1.8rem; font-weight:800; color:var(--primary-dark);">Marketplace Configuration</h1>
+      <p style="color:var(--text-muted); font-size:0.9rem;">Set business commission, customer delivery fees, and regional service parameters</p>
+    </div>
+
+    <div class="card" style="margin-bottom: 24px;">
+      <h3 style="font-size:1.15rem; font-weight:700; color:var(--primary-dark); margin-bottom:16px; border-bottom:1px solid var(--border-color); padding-bottom:8px;">
+        1. Commission & Delivery Charges
+      </h3>
+
+      <form id="settings-form">
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+          <div class="form-group">
+            <label class="form-label">Marketplace Commission Rate (%)</label>
+            <input type="number" id="set-commission" class="form-control" step="0.1" min="0" max="50" required>
+            <div class="form-hint">Deducted from merchant fulfillment group subtotal upon order placement.</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Default Delivery Fee (PKR)</label>
+            <input type="number" id="set-delivery" class="form-control" step="10" min="0" required>
+            <div class="form-hint">Standard regional charge for orders in central valleys.</div>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+          <div class="form-group">
+            <label class="form-label">Customer Support Phone Number</label>
+            <input type="tel" id="set-phone" class="form-control" value="03498188394" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Official Support Email</label>
+            <input type="email" id="set-email" class="form-control" value="sattar.kharkoo@gmail.com" required>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-sm"><i class="fa-solid fa-floppy-disk"></i> Save Configuration</button>
+      </form>
+    </div>
+
+    <!-- Supported Delivery Areas List -->
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border-bottom:1px solid var(--border-color); padding-bottom:8px;">
+        <h3 style="font-size:1.15rem; font-weight:700; color:var(--primary-dark); margin:0;">
+          2. Supported Delivery Areas in Gilgit-Baltistan
+        </h3>
+        <button onclick="toggleAreaModal()" class="btn btn-outline btn-sm"><i class="fa-solid fa-plus"></i> Add Area</button>
+      </div>
+
+      <div id="delivery-areas-list" style="display:flex; flex-direction:column; gap:8px;">
+        <!-- Populated via API -->
+      </div>
+    </div>
+
+  </main>
+
+  <script src="/static/js/api.js"></script>
+  <script src="/static/js/auth.js"></script>
+  <script>
+    async function loadSettings() {
+      if (!requireAuth(["admin"])) return;
+
+      try {
+        const settings = await apiFetch("/admin/settings");
+        settings.forEach(s => {
+          if (s.key === "commission_percent") document.getElementById("set-commission").value = s.value;
+          if (s.key === "default_delivery_fee") document.getElementById("set-delivery").value = s.value;
+          if (s.key === "support_phone") document.getElementById("set-phone").value = s.value;
+          if (s.key === "support_email") document.getElementById("set-email").value = s.value;
+        });
+
+        // Load delivery areas
+        const areas = await apiFetch("/deliveries/areas?active_only=false");
+        const areasContainer = document.getElementById("delivery-areas-list");
+        areasContainer.innerHTML = areas.map(a => `
+          <div style="display:flex; justify-content:space-between; align-items:center; background:#f8fafc; border:1px solid var(--border-color); padding:10px 14px; border-radius:var(--radius-sm); font-size:0.85rem;">
+            <div>
+              <strong>${a.name}</strong> (${a.city}) &bull; <span style="color:var(--text-muted);">${a.estimated_days} Day(s) Delivery</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:12px;">
+              <span style="font-weight:700; color:var(--secondary);">PKR ${a.delivery_fee.toLocaleString()}</span>
+              <span class="badge ${a.is_active ? 'badge-approved' : 'badge-cancelled'}">${a.is_active ? 'Active' : 'Disabled'}</span>
+            </div>
+          </div>
+        `).join("");
+
+      } catch (err) {
+        console.error("Settings load error:", err);
+      }
+    }
+
+    document.getElementById("settings-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      try {
+        await apiFetch("/admin/settings/commission_percent", {
+          method: "PUT",
+          body: JSON.stringify({ value: document.getElementById("set-commission").value })
+        });
+        await apiFetch("/admin/settings/default_delivery_fee", {
+          method: "PUT",
+          body: JSON.stringify({ value: document.getElementById("set-delivery").value })
+        });
+        await apiFetch("/admin/settings/support_phone", {
+          method: "PUT",
+          body: JSON.stringify({ value: document.getElementById("set-phone").value })
+        });
+        await apiFetch("/admin/settings/support_email", {
+          method: "PUT",
+          body: JSON.stringify({ value: document.getElementById("set-email").value })
+        });
+
+        alert("Marketplace configuration saved successfully!");
+      } catch (err) {
+        alert(err.message || "Failed to save settings");
+      }
+    });
+
+    document.addEventListener("DOMContentLoaded", loadSettings);
+  </script>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Local Shops & Merchants — GB MARKET</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+
+  <header class="navbar">
+    <div class="container nav-container">
+      <a href="/static/index.html" class="brand-logo">
+        <i class="fa-solid fa-mountain-sun" style="color:#38bdf8;"></i>
+        <span>GB MARKET</span>
+      </a>
+
+      <div class="nav-actions">
+        <div id="nav-auth-slot"></div>
+        <a href="/static/cart.html" class="cart-icon-btn">
+          <i class="fa-solid fa-cart-shopping"></i>
+          <span>Cart</span>
+          <span id="cart-count-badge" class="cart-badge">0</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container" style="padding: 36px 16px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:12px;">
+      <div>
+        <h1 style="font-size:1.8rem; font-weight:800; color:var(--primary-dark);">Registered Shops in Gilgit-Baltistan</h1>
+        <p style="color:var(--text-muted); font-size:0.9rem;">Browse verified local vendors from Skardu, Gilgit, Hunza, and regional valleys</p>
+      </div>
+      <div>
+        <select id="shops-city-filter" onchange="loadAllShops()" class="form-control" style="font-size:0.85rem; padding:6px 12px;">
+          <option value="">All Districts & Cities</option>
+          <option value="Gilgit">Gilgit</option>
+          <option value="Skardu">Skardu</option>
+          <option value="Hunza">Hunza</option>
+          <option value="Nagar">Nagar</option>
+          <option value="Ghizer">Ghizer</option>
+          <option value="Diamer">Diamer</option>
+          <option value="Astore">Astore</option>
+          <option value="Ghanche">Ghanche</option>
+          <option value="Shigar">Shigar</option>
+          <option value="Kharmang">Kharmang</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="all-shops-grid" class="shop-grid">
+      <!-- Populated via API -->
+    </div>
+  </main>
+
+  <script src="/static/js/api.js"></script>
+  <script src="/static/js/auth.js"></script>
+  <script>
+    async function loadAllShops() {
+      const grid = document.getElementById("all-shops-grid");
+      const city = document.getElementById("shops-city-filter").value;
+
+      try {
+        let url = "/shops/?limit=100";
+        if (city) url += `&city=${encodeURIComponent(city)}`;
+
+        const shops = await apiFetch(url);
+        if (shops.length === 0) {
+          grid.innerHTML = `<p class="text-muted" style="grid-column:1/-1; text-align:center; padding:40px;">No registered shops found for this region.</p>`;
+          return;
+        }
+
+        grid.innerHTML = shops.map(s => `
+          <div class="shop-card">
+            <img class="shop-cover" src="${s.exterior_image}" alt="${s.name}" onerror="this.src='https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=800&q=80'">
+            <div class="shop-body">
+              <h3 class="shop-title"><a href="/static/shop-detail.html?slug=${s.slug}">${s.name}</a></h3>
+              <div class="shop-location"><i class="fa-solid fa-location-dot" style="color:var(--secondary);"></i> ${s.locality}, ${s.city}</div>
+              <p class="shop-desc">Owner: ${s.owner_name} &bull; Open: ${s.opening_hours}</p>
+              <div class="shop-footer">
+                <span><i class="fa-solid fa-shield-halved" style="color:var(--secondary);"></i> Verified</span>
+                <a href="/static/shop-detail.html?slug=${s.slug}" style="color:var(--primary); font-weight:700;">View Store &rarr;</a>
+              </div>
+            </div>
+          </div>
+        `).join("");
+      } catch (err) {
+        grid.innerHTML = `<p style="color:red; grid-column:1/-1;">Error loading shops: ${err.message}</p>`;
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", loadAllShops);
+  </script>
+</body>
+</html>

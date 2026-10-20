@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Orders — GB MARKET Seller Hub</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body style="background-color: #f8fafc;">
+
+  <header class="navbar">
+    <div class="container nav-container">
+      <a href="/static/seller/index.html" class="brand-logo">
+        <i class="fa-solid fa-mountain-sun" style="color:#38bdf8;"></i>
+        <span>GB MARKET</span>
+        <span class="brand-badge" style="background:#0284c7;">Seller Orders</span>
+      </a>
+
+      <div class="nav-actions">
+        <div id="nav-auth-slot"></div>
+        <a href="/static/seller/index.html" class="nav-btn-link"><i class="fa-solid fa-gauge"></i> Seller Dashboard</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container" style="padding: 32px 16px;">
+    
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:12px;">
+      <div>
+        <h1 style="font-size:1.8rem; font-weight:800; color:var(--primary-dark);">Customer Orders</h1>
+        <p style="color:var(--text-muted); font-size:0.9rem;">Review and pack orders containing products from your shop</p>
+      </div>
+      <div>
+        <select id="status-filter" onchange="loadSellerOrders()" class="form-control" style="font-size:0.85rem; padding:6px 12px;">
+          <option value="">All Orders</option>
+          <option value="Pending Confirmation">Pending Confirmation</option>
+          <option value="Confirmed">Confirmed</option>
+          <option value="Preparing">Preparing</option>
+          <option value="Packed">Packed</option>
+          <option value="Ready for Pickup">Ready for Pickup</option>
+          <option value="Delivered">Delivered</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="seller-orders-list" style="display:flex; flex-direction:column; gap:16px;">
+      <p class="text-muted" style="text-align:center; padding:30px;">Loading customer orders...</p>
+    </div>
+
+  </main>
+
+  <!-- Status Update Modal -->
+  <div id="status-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center; padding:16px;">
+    <div class="card" style="width:100%; max-width:440px; box-shadow:var(--shadow-lg);">
+      <h3 style="font-weight:800; color:var(--primary-dark); margin-bottom:12px;">Update Fulfillment Status</h3>
+      <input type="hidden" id="modal-group-id">
+
+      <div class="form-group">
+        <label class="form-label">New Status</label>
+        <select id="modal-status-select" class="form-control">
+          <option value="Confirmed">Confirmed (Order Accepted)</option>
+          <option value="Preparing">Preparing (Gathering items)</option>
+          <option value="Packed">Packed (Ready in carton/box)</option>
+          <option value="Ready for Pickup">Ready for Pickup (Awaiting Rider)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Notes for Customer / Rider (Optional)</label>
+        <input type="text" id="modal-status-notes" class="form-control" placeholder="e.g. Packed in insulated carton">
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+        <button onclick="closeStatusModal()" class="btn btn-outline btn-sm">Cancel</button>
+        <button onclick="saveStatusUpdate()" class="btn btn-success btn-sm">Confirm Status Update</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/js/api.js"></script>
+  <script src="/static/js/auth.js"></script>
+  <script>
+    async function loadSellerOrders() {
+      if (!requireAuth(["shopkeeper", "admin"])) return;
+
+      const container = document.getElementById("seller-orders-list");
+      const filter = document.getElementById("status-filter").value;
+
+      try {
+        let url = "/orders/seller/my-orders";
+        if (filter) url += `?status_filter=${encodeURIComponent(filter)}`;
+
+        const groups = await apiFetch(url);
+        if (groups.length === 0) {
+          container.innerHTML = `
+            <div class="card" style="text-align:center; padding:50px 20px;">
+              <i class="fa-solid fa-receipt fa-3x" style="color:var(--text-light); margin-bottom:12px;"></i>
+              <h3 style="color:var(--primary-dark);">No Orders Found</h3>
+              <p class="text-muted" style="margin-top:4px;">No customer orders match the selected filter.</p>
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = groups.map(g => {
+          let badgeClass = "badge-pending";
+          if (g.status === "Delivered") badgeClass = "badge-delivered";
+          else if (g.status === "Cancelled") badgeClass = "badge-cancelled";
+          else if (g.status === "Confirmed" || g.status === "Preparing" || g.status === "Packed") badgeClass = "badge-preparing";
+
+          return `
+            <div class="card" style="box-shadow:var(--shadow-sm);">
+              <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-color); padding-bottom:12px; margin-bottom:14px; flex-wrap:wrap; gap:8px;">
+                <div>
+                  <span style="font-weight:800; font-size:1.1rem; color:var(--primary-dark);">${g.order_number}</span>
+                  <div style="font-size:0.75rem; color:var(--text-muted);">${new Date(g.created_at).toLocaleString()}</div>
+                </div>
+                <div style="display:flex; align-items:center; gap:12px;">
+                  <span class="badge ${badgeClass}">${g.status}</span>
+                  <button onclick="openStatusModal(${g.id}, '${g.status}')" class="btn btn-outline btn-sm">
+                    <i class="fa-solid fa-arrows-rotate"></i> Update Status
+                  </button>
+                </div>
+              </div>
+
+              <!-- Items in this group -->
+              <div style="margin-bottom:14px;">
+                <table style="width:100%; border-collapse:collapse; font-size:0.85rem;">
+                  <tbody>
+                    ${g.items.map(it => `
+                      <tr style="border-bottom:1px solid #f8fafc;">
+                        <td style="padding:6px 0; font-weight:600;">${it.product_title}</td>
+                        <td style="padding:6px 12px; text-align:center;">Qty: ${it.quantity}</td>
+                        <td style="padding:6px 0; text-align:right; font-weight:700;">PKR ${it.subtotal.toLocaleString()}</td>
+                      </tr>
+                    `).join("")}
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Customer delivery & financials -->
+              <div style="display:flex; justify-content:space-between; align-items:flex-end; border-top:1px solid #f1f5f9; padding-top:12px; font-size:0.85rem; flex-wrap:wrap; gap:12px;">
+                <div style="color:var(--text-main);">
+                  <strong>Recipient:</strong> ${g.customer_name} (${g.customer_phone})<br>
+                  <strong>Address:</strong> ${g.delivery_address}
+                </div>
+                <div style="text-align:right;">
+                  <div style="color:var(--text-muted); font-size:0.8rem;">Commission: -PKR ${g.commission_amount.toLocaleString()}</div>
+                  <div style="font-size:1.15rem; font-weight:800; color:var(--secondary); margin-top:2px;">
+                    Seller Net Payout: PKR ${g.seller_payout.toLocaleString()}
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join("");
+      } catch (err) {
+        container.innerHTML = `<p style="color:red; text-align:center;">Failed to load orders: ${err.message}</p>`;
+      }
+    }
+
+    function openStatusModal(groupId, currentStatus) {
+      document.getElementById("modal-group-id").value = groupId;
+      document.getElementById("modal-status-select").value = currentStatus;
+      document.getElementById("modal-status-notes").value = "";
+      document.getElementById("status-modal").style.display = "flex";
+    }
+
+    function closeStatusModal() {
+      document.getElementById("status-modal").style.display = "none";
+    }
+
+    async function saveStatusUpdate() {
+      const groupId = document.getElementById("modal-group-id").value;
+      const newStatus = document.getElementById("modal-status-select").value;
+      const notes = document.getElementById("modal-status-notes").value.trim();
+
+      try {
+        await apiFetch(`/orders/seller/order-groups/${groupId}/status`, {
+          method: "PUT",
+          body: JSON.stringify({ status: newStatus, notes })
+        });
+        closeStatusModal();
+        loadSellerOrders();
+      } catch (err) {
+        alert(err.message || "Failed to update status");
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", loadSellerOrders);
+  </script>
+</body>
+</html>

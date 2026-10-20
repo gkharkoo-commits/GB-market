@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout — GB MARKET</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body style="background-color: #f8fafc;">
+
+  <header class="navbar">
+    <div class="container nav-container">
+      <a href="/static/index.html" class="brand-logo">
+        <i class="fa-solid fa-mountain-sun" style="color:#38bdf8;"></i>
+        <span>GB MARKET</span>
+        <span class="brand-badge">Secure Checkout</span>
+      </a>
+
+      <div class="nav-actions">
+        <div id="nav-auth-slot"></div>
+        <a href="/static/cart.html" class="nav-btn-link"><i class="fa-solid fa-arrow-left"></i> Back to Cart</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container" style="padding: 36px 16px; max-width: 900px;">
+    <h1 style="font-size: 1.8rem; font-weight: 800; color: var(--primary-dark); margin-bottom: 24px;">
+      <i class="fa-solid fa-shield-halved" style="color:var(--secondary);"></i> Checkout & Delivery Information
+    </h1>
+
+    <div id="checkout-err" style="display:none; background:#fee2e2; color:#b91c1c; padding:14px; border-radius:var(--radius-sm); margin-bottom:20px; font-size:0.9rem;"></div>
+
+    <div style="display:grid; grid-template-columns: 1.3fr 0.9fr; gap: 28px;">
+      
+      <!-- Delivery Form -->
+      <div>
+        <div class="card">
+          <h3 style="font-size:1.15rem; font-weight:700; color:var(--primary-dark); margin-bottom:16px; border-bottom:1px solid var(--border-color); padding-bottom:10px;">
+            1. Receiver & Delivery Address
+          </h3>
+
+          <form id="checkout-form">
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:14px;">
+              <div class="form-group">
+                <label class="form-label">Full Name *</label>
+                <input type="text" id="delivery_name" class="form-control" placeholder="Recipient's Name" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Mobile Contact *</label>
+                <input type="tel" id="delivery_phone" class="form-control" placeholder="e.g. 03498188394" required>
+              </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:14px;">
+              <div class="form-group">
+                <label class="form-label">City / District *</label>
+                <select id="delivery_city" class="form-control" onchange="updateDeliveryFeeForCity()" required>
+                  <option value="">Select Delivery City...</option>
+                  <option value="Gilgit">Gilgit</option>
+                  <option value="Skardu">Skardu</option>
+                  <option value="Hunza">Hunza</option>
+                  <option value="Nagar">Nagar</option>
+                  <option value="Ghizer">Ghizer</option>
+                  <option value="Diamer">Diamer</option>
+                  <option value="Astore">Astore</option>
+                  <option value="Ghanche">Ghanche</option>
+                  <option value="Shigar">Shigar</option>
+                  <option value="Kharmang">Kharmang</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Bazar / Locality *</label>
+                <input type="text" id="delivery_locality" class="form-control" placeholder="e.g. Jutial / Naya Bazar" required>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Complete Delivery Address *</label>
+              <textarea id="delivery_address" class="form-control" rows="2" placeholder="House/Apartment #, Street, Mohalla, Near landmark" required></textarea>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Nearby Landmark (Optional)</label>
+              <input type="text" id="delivery_landmark" class="form-control" placeholder="e.g. Near KIU Gate 2 or Hospital Road">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Order Notes / Delivery Instructions</label>
+              <input type="text" id="customer_notes" class="form-control" placeholder="e.g. Please deliver between 2 PM and 5 PM">
+            </div>
+
+            <h3 style="font-size:1.15rem; font-weight:700; color:var(--primary-dark); margin:24px 0 16px; border-bottom:1px solid var(--border-color); padding-bottom:10px;">
+              2. Payment Method
+            </h3>
+
+            <div style="padding:16px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:var(--radius-sm); margin-bottom:20px;">
+              <div style="display:flex; align-items:center; gap:10px;">
+                <input type="radio" id="cod" name="payment_method" value="Cash on Delivery" checked style="accent-color:var(--secondary); width:18px; height:18px;">
+                <label for="cod" style="font-weight:700; color:var(--primary-dark); font-size:0.95rem; cursor:pointer;">
+                  Cash on Delivery (COD)
+                </label>
+              </div>
+              <p style="font-size:0.85rem; color:var(--text-muted); margin-top:6px; margin-left:28px;">
+                Pay securely in Pakistani Rupees (PKR) directly to the delivery rider upon inspecting your package.
+              </p>
+            </div>
+
+            <button type="submit" id="order-submit-btn" class="btn btn-success btn-block" style="padding:14px; font-size:1.05rem;">
+              <i class="fa-solid fa-check-circle"></i> Confirm & Place Order (Cash on Delivery)
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Order Review Sidebar -->
+      <div>
+        <div class="card" style="position:sticky; top:90px;">
+          <h3 style="font-size:1.15rem; font-weight:700; color:var(--primary-dark); margin-bottom:14px; border-bottom:1px solid var(--border-color); padding-bottom:8px;">
+            Order Breakdown
+          </h3>
+
+          <div id="checkout-items" style="max-height:260px; overflow-y:auto; margin-bottom:16px; display:flex; flex-direction:column; gap:10px;">
+            <!-- Items -->
+          </div>
+
+          <div style="border-top:1px solid var(--border-color); padding-top:12px; font-size:0.9rem;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+              <span style="color:var(--text-muted);">Items Subtotal:</span>
+              <span id="co-subtotal" style="font-weight:700;">PKR 0</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+              <span style="color:var(--text-muted);">Regional Delivery Fee:</span>
+              <span id="co-delivery" style="font-weight:700; color:var(--secondary);">PKR 150</span>
+            </div>
+            <div style="border-top:2px solid var(--border-color); padding-top:10px; margin-top:8px; display:flex; justify-content:space-between; align-items:baseline;">
+              <span style="font-size:1.05rem; font-weight:800; color:var(--primary-dark);">Grand Total:</span>
+              <span id="co-total" style="font-size:1.35rem; font-weight:800; color:var(--secondary);">PKR 0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script src="/static/js/api.js"></script>
+  <script src="/static/js/auth.js"></script>
+  <script>
+    let currentCart = null;
+    let deliveryFee = 150;
+
+    async function initCheckout() {
+      // Must be logged in
+      const user = getCurrentUser();
+      const token = getAuthToken();
+      if (!user || !token) {
+        window.location.href = `/static/login.html?redirect=${encodeURIComponent(window.location.pathname)}`;
+        return;
+      }
+
+      // Pre-fill user details
+      document.getElementById("delivery_name").value = user.full_name || "";
+
+      // Load user profile & saved addresses if available
+      try {
+        const profile = await apiFetch("/users/profile");
+        if (profile.phone) document.getElementById("delivery_phone").value = profile.phone;
+        if (profile.addresses && profile.addresses.length > 0) {
+          const defaultAddr = profile.addresses.find(a => a.is_default) || profile.addresses[0];
+          document.getElementById("delivery_name").value = defaultAddr.full_name;
+          document.getElementById("delivery_phone").value = defaultAddr.phone;
+          document.getElementById("delivery_city").value = defaultAddr.city;
+          document.getElementById("delivery_locality").value = defaultAddr.locality;
+          document.getElementById("delivery_address").value = defaultAddr.address_line;
+          if (defaultAddr.landmark) document.getElementById("delivery_landmark").value = defaultAddr.landmark;
+        }
+      } catch (e) {}
+
+      // Load cart
+      try {
+        currentCart = await apiFetch("/cart/");
+        if (!currentCart.items || currentCart.items.length === 0) {
+          alert("Your cart is empty! Redirecting to marketplace...");
+          window.location.href = "/static/index.html";
+          return;
+        }
+        renderCartSummary();
+      } catch (e) {
+        alert("Could not load cart items.");
+      }
+    }
+
+    function renderCartSummary() {
+      if (!currentCart) return;
+      const itemsContainer = document.getElementById("checkout-items");
+      itemsContainer.innerHTML = currentCart.items.map(i => `
+        <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.85rem;">
+          <div style="flex:1; padding-right:10px;">
+            <div style="font-weight:600; color:var(--primary-dark);">${i.product_title}</div>
+            <div style="font-size:0.75rem; color:var(--text-muted);">${i.quantity} x PKR ${i.product_price.toLocaleString()} (${i.shop_name})</div>
+          </div>
+          <span style="font-weight:700;">PKR ${i.subtotal.toLocaleString()}</span>
+        </div>
+      `).join("");
+
+      updateDeliveryFeeForCity();
+    }
+
+    function updateDeliveryFeeForCity() {
+      const city = document.getElementById("delivery_city").value;
+      if (city === "Hunza" || city === "Nagar" || city === "Diamer" || city === "Astore" || city === "Ghanche") {
+        deliveryFee = 250;
+      } else {
+        deliveryFee = 150;
+      }
+
+      const sub = currentCart ? currentCart.subtotal : 0;
+      const total = sub + deliveryFee;
+
+      document.getElementById("co-subtotal").textContent = `PKR ${sub.toLocaleString()}`;
+      document.getElementById("co-delivery").textContent = `PKR ${deliveryFee.toLocaleString()}`;
+      document.getElementById("co-total").textContent = `PKR ${total.toLocaleString()}`;
+    }
+
+    document.getElementById("checkout-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const errBox = document.getElementById("checkout-err");
+      const btn = document.getElementById("order-submit-btn");
+      errBox.style.display = "none";
+
+      const payload = {
+        delivery_name: document.getElementById("delivery_name").value.trim(),
+        delivery_phone: document.getElementById("delivery_phone").value.trim(),
+        delivery_city: document.getElementById("delivery_city").value,
+        delivery_locality: document.getElementById("delivery_locality").value.trim(),
+        delivery_address: document.getElementById("delivery_address").value.trim(),
+        delivery_landmark: document.getElementById("delivery_landmark").value.trim() || null,
+        customer_notes: document.getElementById("customer_notes").value.trim() || null,
+        payment_method: "Cash on Delivery"
+      };
+
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Securing Inventory & Creating Order...`;
+
+      try {
+        const order = await apiFetch("/orders/checkout", {
+          method: "POST",
+          body: JSON.stringify(payload)
+        });
+
+        updateCartCountBadge();
+        window.location.href = `/static/order-detail.html?id=${order.id}&placed=true`;
+      } catch (err) {
+        errBox.textContent = err.message || "Failed to place order. Please review your details.";
+        errBox.style.display = "block";
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-check-circle"></i> Confirm & Place Order (Cash on Delivery)`;
+      }
+    });
+
+    document.addEventListener("DOMContentLoaded", initCheckout);
+  </script>
+</body>
+</html>

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rider Hub — GB MARKET</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body style="background-color: #f8fafc;">
+
+  <header class="navbar">
+    <div class="container nav-container">
+      <a href="/static/index.html" class="brand-logo">
+        <i class="fa-solid fa-motorcycle" style="color:#4ade80;"></i>
+        <span>GB MARKET</span>
+        <span class="brand-badge" style="background:#059669;">Rider Portal</span>
+      </a>
+
+      <div class="nav-actions">
+        <div id="nav-auth-slot"></div>
+        <a href="/static/index.html" class="nav-btn-link"><i class="fa-solid fa-house"></i> Home</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container" style="padding: 32px 16px; max-width: 800px;">
+    
+    <div style="margin-bottom: 24px;">
+      <h1 style="font-size:1.8rem; font-weight:800; color:var(--primary-dark);">Your Assigned Deliveries</h1>
+      <p style="color:var(--text-muted); font-size:0.9rem;">Pick up packages from local shopkeepers and deliver to customers in Gilgit-Baltistan</p>
+    </div>
+
+    <div id="deliveries-list" style="display:flex; flex-direction:column; gap:16px;">
+      <p class="text-muted" style="text-align:center; padding:30px;">Loading your delivery assignments...</p>
+    </div>
+
+  </main>
+
+  <!-- Status Update Modal -->
+  <div id="rider-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center; padding:16px;">
+    <div class="card" style="width:100%; max-width:440px; box-shadow:var(--shadow-lg);">
+      <h3 style="font-weight:800; color:var(--primary-dark); margin-bottom:12px;">Update Delivery Progress</h3>
+      <input type="hidden" id="modal-delivery-id">
+
+      <div class="form-group">
+        <label class="form-label">Delivery Status</label>
+        <select id="modal-rider-status" class="form-control" onchange="toggleFailureReason()">
+          <option value="Picked Up">Picked Up from Shopkeeper</option>
+          <option value="Out for Delivery">Out for Delivery (On the way)</option>
+          <option value="Delivered">Delivered (Cash Collected)</option>
+          <option value="Delivery Failed">Delivery Failed (Customer Unreachable / Closed)</option>
+        </select>
+      </div>
+
+      <div id="failure-box" class="form-group" style="display:none;">
+        <label class="form-label">Reason for Failure *</label>
+        <input type="text" id="modal-failure-reason" class="form-control" placeholder="e.g. Phone powered off, road blocked">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Rider Notes (Optional)</label>
+        <input type="text" id="modal-rider-notes" class="form-control" placeholder="e.g. Handed package to recipient in person">
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+        <button onclick="closeRiderModal()" class="btn btn-outline btn-sm">Cancel</button>
+        <button onclick="saveDeliveryUpdate()" class="btn btn-success btn-sm">Submit Update</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/js/api.js"></script>
+  <script src="/static/js/auth.js"></script>
+  <script>
+    async function loadRiderDeliveries() {
+      if (!requireAuth(["rider", "admin"])) return;
+
+      const container = document.getElementById("deliveries-list");
+
+      try {
+        const deliveries = await apiFetch("/deliveries/my-deliveries");
+        if (deliveries.length === 0) {
+          container.innerHTML = `
+            <div class="card" style="text-align:center; padding:50px 20px;">
+              <i class="fa-solid fa-motorcycle fa-3x" style="color:var(--text-light); margin-bottom:12px;"></i>
+              <h3 style="color:var(--primary-dark);">No Deliveries Assigned</h3>
+              <p class="text-muted" style="margin-top:4px;">You currently have no active deliveries assigned to your account.</p>
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = deliveries.map(d => {
+          let badgeClass = "badge-pending";
+          if (d.status === "Delivered") badgeClass = "badge-delivered";
+          else if (d.status === "Delivery Failed") badgeClass = "badge-cancelled";
+          else if (d.status === "Out for Delivery" || d.status === "Picked Up") badgeClass = "badge-preparing";
+
+          return `
+            <div class="card" style="box-shadow:var(--shadow-sm);">
+              <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-color); padding-bottom:10px; margin-bottom:12px;">
+                <div>
+                  <span style="font-weight:800; font-size:1.05rem; color:var(--primary-dark);">Delivery #${d.id}</span>
+                  <div style="font-size:0.75rem; color:var(--text-muted);">${new Date(d.created_at).toLocaleString()}</div>
+                </div>
+                <div style="display:flex; align-items:center; gap:10px;">
+                  <span class="badge ${badgeClass}">${d.status}</span>
+                  <button onclick="openRiderModal(${d.id}, '${d.status}')" class="btn btn-outline btn-sm">
+                    <i class="fa-solid fa-pen-to-square"></i> Update
+                  </button>
+                </div>
+              </div>
+
+              <!-- Pickup -->
+              <div style="margin-bottom:12px; padding:10px; background:#f8fafc; border-radius:var(--radius-sm); font-size:0.85rem;">
+                <strong style="color:var(--primary);"><i class="fa-solid fa-store"></i> Merchant Pickup Location:</strong>
+                <div style="margin-top:2px; color:var(--text-main);">${d.pickup_address}</div>
+              </div>
+
+              <!-- Drop-off -->
+              <div style="margin-bottom:12px; padding:10px; background:#ecfdf5; border-radius:var(--radius-sm); font-size:0.85rem;">
+                <strong style="color:var(--secondary);"><i class="fa-solid fa-location-dot"></i> Customer Drop-off Destination:</strong>
+                <div style="margin-top:2px; color:var(--text-main);">${d.delivery_address}</div>
+                <div style="margin-top:6px; font-weight:700;">
+                  <i class="fa-solid fa-phone"></i> <a href="tel:${d.customer_phone}" style="color:var(--primary-accent);">${d.customer_phone}</a>
+                </div>
+              </div>
+
+              ${d.rider_notes ? `<div style="font-size:0.8rem; color:var(--text-muted);"><strong>Notes:</strong> ${d.rider_notes}</div>` : ''}
+              ${d.failure_reason ? `<div style="font-size:0.8rem; color:var(--danger); margin-top:2px;"><strong>Failure Reason:</strong> ${d.failure_reason}</div>` : ''}
+            </div>
+          `;
+        }).join("");
+      } catch (err) {
+        container.innerHTML = `<p style="color:red; text-align:center;">Failed to load deliveries: ${err.message}</p>`;
+      }
+    }
+
+    function openRiderModal(id, currentStatus) {
+      document.getElementById("modal-delivery-id").value = id;
+      document.getElementById("modal-rider-status").value = currentStatus;
+      document.getElementById("modal-rider-notes").value = "";
+      document.getElementById("modal-failure-reason").value = "";
+      toggleFailureReason();
+      document.getElementById("rider-modal").style.display = "flex";
+    }
+
+    function closeRiderModal() {
+      document.getElementById("rider-modal").style.display = "none";
+    }
+
+    function toggleFailureReason() {
+      const st = document.getElementById("modal-rider-status").value;
+      document.getElementById("failure-box").style.display = (st === "Delivery Failed") ? "block" : "none";
+    }
+
+    async function saveDeliveryUpdate() {
+      const id = document.getElementById("modal-delivery-id").value;
+      const status = document.getElementById("modal-rider-status").value;
+      const notes = document.getElementById("modal-rider-notes").value.trim();
+      const failureReason = document.getElementById("modal-failure-reason").value.trim();
+
+      if (status === "Delivery Failed" && !failureReason) {
+        alert("Please state the reason for delivery failure.");
+        return;
+      }
+
+      try {
+        await apiFetch(`/deliveries/${id}/status`, {
+          method: "PUT",
+          body: JSON.stringify({
+            status,
+            notes: notes || null,
+            failure_reason: failureReason || null
+          })
+        });
+        closeRiderModal();
+        loadRiderDeliveries();
+      } catch (err) {
+        alert(err.message || "Failed to update delivery");
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", loadRiderDeliveries);
+  </script>
+</body>
+</html>

@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Seller Dashboard — GB MARKET</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body style="background-color: #f8fafc;">
+
+  <header class="navbar">
+    <div class="container nav-container">
+      <a href="/static/index.html" class="brand-logo">
+        <i class="fa-solid fa-mountain-sun" style="color:#38bdf8;"></i>
+        <span>GB MARKET</span>
+        <span class="brand-badge" style="background:#0284c7;">Seller Hub</span>
+      </a>
+
+      <div class="nav-actions">
+        <div id="nav-auth-slot"></div>
+        <a href="/static/index.html" class="nav-btn-link"><i class="fa-solid fa-store"></i> Customer View</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container" style="padding: 32px 16px;">
+    
+    <!-- Status Banner for Unapproved Shops -->
+    <div id="unapproved-notice" style="display:none; padding:16px; border-radius:var(--radius-md); margin-bottom:24px;"></div>
+
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:12px;">
+      <div>
+        <h1 id="shop-title-heading" style="font-size:1.8rem; font-weight:800; color:var(--primary-dark);">Merchant Dashboard</h1>
+        <p style="color:var(--text-muted); font-size:0.9rem;" id="shop-subtitle">Loading your shop status...</p>
+      </div>
+      <div style="display:flex; gap:10px;">
+        <a href="/static/seller/products.html" class="btn btn-primary btn-sm"><i class="fa-solid fa-boxes-stacked"></i> Manage Products</a>
+        <a href="/static/seller/orders.html" class="btn btn-success btn-sm"><i class="fa-solid fa-receipt"></i> Customer Orders</a>
+      </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:18px; margin-bottom:32px;">
+      <div class="card" style="border-left: 4px solid var(--secondary);">
+        <div style="font-size:0.8rem; color:var(--text-muted); text-transform:uppercase; font-weight:700;">Seller Payouts</div>
+        <div id="stat-payout" style="font-size:1.6rem; font-weight:800; color:var(--primary-dark); margin:4px 0;">PKR 0</div>
+        <div style="font-size:0.75rem; color:var(--text-muted);">After marketplace commission</div>
+      </div>
+
+      <div class="card" style="border-left: 4px solid var(--primary);">
+        <div style="font-size:0.8rem; color:var(--text-muted); text-transform:uppercase; font-weight:700;">Active Orders</div>
+        <div id="stat-orders" style="font-size:1.6rem; font-weight:800; color:var(--primary-dark); margin:4px 0;">0</div>
+        <div style="font-size:0.75rem; color:var(--text-muted);">Orders to pack & dispatch</div>
+      </div>
+
+      <div class="card" style="border-left: 4px solid var(--accent-orange);">
+        <div style="font-size:0.8rem; color:var(--text-muted); text-transform:uppercase; font-weight:700;">Listed Products</div>
+        <div id="stat-products" style="font-size:1.6rem; font-weight:800; color:var(--primary-dark); margin:4px 0;">0</div>
+        <div style="font-size:0.75rem; color:var(--text-muted);">Items active in your catalog</div>
+      </div>
+
+      <div class="card" style="border-left: 4px solid #0284c7;">
+        <div style="font-size:0.8rem; color:var(--text-muted); text-transform:uppercase; font-weight:700;">Verification Status</div>
+        <div id="stat-status" style="font-size:1.2rem; font-weight:800; color:var(--secondary); margin:6px 0; text-transform:capitalize;">-</div>
+        <div id="stat-commission" style="font-size:0.75rem; color:var(--text-muted);">Commission: 5%</div>
+      </div>
+    </div>
+
+    <!-- Quick Actions & Recent Orders Table -->
+    <div style="display:grid; grid-template-columns: 2fr 1fr; gap:24px;">
+      
+      <!-- Recent Orders List -->
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+          <h3 style="font-size:1.15rem; font-weight:700; color:var(--primary-dark); margin:0;">
+            Recent Orders
+          </h3>
+          <a href="/static/seller/orders.html" style="font-size:0.85rem; color:var(--primary); font-weight:600;">View All &rarr;</a>
+        </div>
+
+        <div id="recent-orders-list" style="display:flex; flex-direction:column; gap:12px;">
+          <p class="text-muted" style="font-size:0.85rem;">Loading orders...</p>
+        </div>
+      </div>
+
+      <!-- Shop Profile Overview -->
+      <div class="card">
+        <h3 style="font-size:1.15rem; font-weight:700; color:var(--primary-dark); margin-bottom:14px;">
+          Shop Details
+        </h3>
+        <div id="shop-profile-view" style="font-size:0.85rem; line-height:1.6; color:var(--text-main);">
+          Loading shop info...
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script src="/static/js/api.js"></script>
+  <script src="/static/js/auth.js"></script>
+  <script>
+    async function initSellerDashboard() {
+      if (!requireAuth(["shopkeeper", "admin"])) return;
+
+      try {
+        const shop = await apiFetch("/shops/my-shop");
+        if (!shop) {
+          window.location.href = "/static/shop-register.html";
+          return;
+        }
+
+        document.getElementById("shop-title-heading").textContent = shop.name;
+        document.getElementById("shop-subtitle").textContent = `${shop.locality}, ${shop.city} &bull; Owner: ${shop.owner_name}`;
+        document.getElementById("stat-status").textContent = shop.verification_status;
+        document.getElementById("stat-commission").textContent = `Platform Commission: ${shop.commission_rate || 5}%`;
+
+        // Render Notice if not approved
+        const notice = document.getElementById("unapproved-notice");
+        if (shop.verification_status !== "approved") {
+          notice.style.display = "block";
+          if (shop.verification_status === "pending") {
+            notice.style.background = "#fef3c7";
+            notice.style.border = "1px solid #fde68a";
+            notice.style.color = "#92400e";
+            notice.innerHTML = `
+              <strong><i class="fa-solid fa-clock"></i> Shop Application Under Review:</strong>
+              Your shop registration is pending administrator approval. You can view your details, but selling and product publishing will activate once approved.
+            `;
+          } else if (shop.verification_status === "rejected") {
+            notice.style.background = "#fee2e2";
+            notice.style.border = "1px solid #fecdd3";
+            notice.style.color = "#991b1b";
+            notice.innerHTML = `<strong><i class="fa-solid fa-triangle-exclamation"></i> Application Rejected:</strong> Reason: ${shop.verification_notes || "Document verification failed"}.`;
+          }
+        }
+
+        document.getElementById("shop-profile-view").innerHTML = `
+          <strong>Shop Name:</strong> ${shop.name}<br>
+          <strong>Phone:</strong> ${shop.phone}<br>
+          <strong>City / Bazar:</strong> ${shop.locality}, ${shop.city}<br>
+          <strong>Physical Address:</strong> ${shop.address}<br>
+          <strong>Opening Hours:</strong> ${shop.opening_hours}<br>
+          <div style="margin-top:12px;">
+            <a href="/static/shop-detail.html?slug=${shop.slug}" class="btn btn-outline btn-sm" style="width:100%;"><i class="fa-solid fa-eye"></i> View Public Storefront</a>
+          </div>
+        `;
+
+        // Load Products Count
+        const products = await apiFetch("/products/seller/my-products");
+        document.getElementById("stat-products").textContent = products.length;
+
+        // Load Orders
+        const orders = await apiFetch("/orders/seller/my-orders");
+        document.getElementById("stat-orders").textContent = orders.filter(o => o.status !== "Delivered" && o.status !== "Cancelled").length;
+
+        // Calculate payout
+        let totalPayout = 0;
+        orders.forEach(o => {
+          if (o.status !== "Cancelled") totalPayout += o.seller_payout;
+        });
+        document.getElementById("stat-payout").textContent = `PKR ${totalPayout.toLocaleString()}`;
+
+        // Render recent orders
+        const recentOrdersContainer = document.getElementById("recent-orders-list");
+        if (orders.length === 0) {
+          recentOrdersContainer.innerHTML = `<p class="text-muted" style="font-size:0.85rem;">No orders received yet.</p>`;
+          return;
+        }
+
+        recentOrdersContainer.innerHTML = orders.slice(0, 5).map(o => `
+          <div style="display:flex; justify-content:space-between; align-items:center; background:#f8fafc; border:1px solid var(--border-color); padding:10px 14px; border-radius:var(--radius-sm); font-size:0.85rem;">
+            <div>
+              <div style="font-weight:700; color:var(--primary-dark);">${o.order_number} &bull; ${o.customer_name}</div>
+              <div style="font-size:0.75rem; color:var(--text-muted);">${o.items.length} item(s) &bull; ${new Date(o.created_at).toLocaleDateString()}</div>
+            </div>
+            <div style="text-align:right;">
+              <span class="badge badge-preparing" style="font-size:0.75rem;">${o.status}</span>
+              <div style="font-weight:700; color:var(--secondary); margin-top:2px;">PKR ${o.seller_payout.toLocaleString()}</div>
+            </div>
+          </div>
+        `).join("");
+
+      } catch (err) {
+        console.error("Dashboard init error:", err);
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", initSellerDashboard);
+  </script>
+</body>
+</html>
