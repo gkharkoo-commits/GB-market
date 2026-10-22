@@ -1,24 +1,24 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Shop Profile — GB MARKET</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <link rel="stylesheet" href="/static/css/styles.css">
+  <link rel="stylesheet" href="/GB-market/static/css/styles.css">
 </head>
 <body>
 
   <header class="navbar">
     <div class="container nav-container">
-      <a href="/static/index.html" class="brand-logo">
+      <a href="/GB-market/static/index.html" class="brand-logo">
         <i class="fa-solid fa-mountain-sun" style="color:#38bdf8;"></i>
         <span>GB MARKET</span>
       </a>
 
       <div class="nav-actions">
         <div id="nav-auth-slot"></div>
-        <a href="/static/cart.html" class="cart-icon-btn">
+        <a href="/GB-market/static/cart.html" class="cart-icon-btn">
           <i class="fa-solid fa-cart-shopping"></i>
           <span>Cart</span>
           <span id="cart-count-badge" class="cart-badge">0</span>
@@ -60,14 +60,14 @@
     </div>
   </main>
 
-  <script src="/static/js/api.js"></script>
-  <script src="/static/js/auth.js"></script>
+  <script src="/GB-market/static/js/api.js"></script>
+  <script src="/GB-market/static/js/auth.js"></script>
   <script>
     async function initShopPage() {
       const urlParams = new URLSearchParams(window.location.search);
       const slug = urlParams.get("slug");
       if (!slug) {
-        window.location.href = "/static/index.html";
+        window.location.href = "/GB-market/static/index.html";
         return;
       }
 
@@ -100,12 +100,12 @@
           const isOutOfStock = p.stock_quantity <= 0;
           return `
             <div class="product-card">
-              <a href="/static/product-detail.html?slug=${p.slug}" class="product-img-wrapper">
+              <a href="/GB-market/static/product-detail.html?slug=${p.slug}" class="product-img-wrapper">
                 <img src="${img}" alt="${p.title}">
                 <span class="badge-stock">${isOutOfStock ? 'Out of Stock' : `${p.stock_quantity} in stock`}</span>
               </a>
               <div class="product-info">
-                <a href="/static/product-detail.html?slug=${p.slug}" class="product-title">${p.title}</a>
+                <a href="/GB-market/static/product-detail.html?slug=${p.slug}" class="product-title">${p.title}</a>
                 <div class="product-price-row">
                   <span class="price-pkr">PKR ${p.price.toLocaleString()}</span>
                 </div>
@@ -118,7 +118,7 @@
         }).join("");
       } catch (err) {
         alert("Shop not found or not currently active.");
-        window.location.href = "/static/index.html";
+        window.location.href = "/GB-market/static/index.html";
       }
     }
 
@@ -139,3 +139,4 @@
   </script>
 </body>
 </html>
+

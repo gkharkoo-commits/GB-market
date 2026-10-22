@@ -1,24 +1,24 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>My Orders — GB MARKET</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <link rel="stylesheet" href="/static/css/styles.css">
+  <link rel="stylesheet" href="/GB-market/static/css/styles.css">
 </head>
 <body style="background-color: #f8fafc;">
 
   <header class="navbar">
     <div class="container nav-container">
-      <a href="/static/index.html" class="brand-logo">
+      <a href="/GB-market/static/index.html" class="brand-logo">
         <i class="fa-solid fa-mountain-sun" style="color:#38bdf8;"></i>
         <span>GB MARKET</span>
       </a>
 
       <div class="nav-actions">
         <div id="nav-auth-slot"></div>
-        <a href="/static/cart.html" class="cart-icon-btn">
+        <a href="/GB-market/static/cart.html" class="cart-icon-btn">
           <i class="fa-solid fa-cart-shopping"></i>
           <span>Cart</span>
           <span id="cart-count-badge" class="cart-badge">0</span>
@@ -32,7 +32,7 @@
       <h1 style="font-size: 1.8rem; font-weight: 800; color: var(--primary-dark);">
         <i class="fa-solid fa-box" style="color:var(--secondary);"></i> My Orders
       </h1>
-      <a href="/static/index.html" class="btn btn-outline btn-sm"><i class="fa-solid fa-plus"></i> Shop More</a>
+      <a href="/GB-market/static/index.html" class="btn btn-outline btn-sm"><i class="fa-solid fa-plus"></i> Shop More</a>
     </div>
 
     <div id="orders-loading" style="text-align: center; padding: 40px 0;">
@@ -45,8 +45,8 @@
     </div>
   </main>
 
-  <script src="/static/js/api.js"></script>
-  <script src="/static/js/auth.js"></script>
+  <script src="/GB-market/static/js/api.js"></script>
+  <script src="/GB-market/static/js/auth.js"></script>
   <script>
     async function loadOrders() {
       if (!requireAuth(["customer", "shopkeeper", "rider", "admin"])) return;
@@ -64,7 +64,7 @@
               <i class="fa-solid fa-box-open fa-3x" style="color:var(--text-light); margin-bottom:12px;"></i>
               <h3 style="color:var(--primary-dark);">No Orders Placed Yet</h3>
               <p class="text-muted" style="margin:6px 0 16px;">You haven't ordered any products from Gilgit-Baltistan merchants yet.</p>
-              <a href="/static/index.html" class="btn btn-primary btn-sm">Explore Marketplace</a>
+              <a href="/GB-market/static/index.html" class="btn btn-primary btn-sm">Explore Marketplace</a>
             </div>
           `;
           return;
@@ -108,7 +108,7 @@
                 <span style="color:var(--text-muted);">
                   <i class="fa-solid fa-location-dot" style="color:var(--secondary);"></i> ${o.delivery_locality}, ${o.delivery_city} &bull; ${o.payment_method}
                 </span>
-                <a href="/static/order-detail.html?id=${o.id}" class="btn btn-outline btn-sm" style="font-weight:700;">
+                <a href="/GB-market/static/order-detail.html?id=${o.id}" class="btn btn-outline btn-sm" style="font-weight:700;">
                   <i class="fa-solid fa-timeline"></i> Track & Details &rarr;
                 </a>
               </div>
@@ -124,3 +124,4 @@
   </script>
 </body>
 </html>
+

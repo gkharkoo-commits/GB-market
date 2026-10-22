@@ -1,17 +1,17 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Seller Dashboard — GB MARKET</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <link rel="stylesheet" href="/static/css/styles.css">
+  <link rel="stylesheet" href="/GB-market/static/css/styles.css">
 </head>
 <body style="background-color: #f8fafc;">
 
   <header class="navbar">
     <div class="container nav-container">
-      <a href="/static/index.html" class="brand-logo">
+      <a href="/GB-market/static/index.html" class="brand-logo">
         <i class="fa-solid fa-mountain-sun" style="color:#38bdf8;"></i>
         <span>GB MARKET</span>
         <span class="brand-badge" style="background:#0284c7;">Seller Hub</span>
@@ -19,7 +19,7 @@
 
       <div class="nav-actions">
         <div id="nav-auth-slot"></div>
-        <a href="/static/index.html" class="nav-btn-link"><i class="fa-solid fa-store"></i> Customer View</a>
+        <a href="/GB-market/static/index.html" class="nav-btn-link"><i class="fa-solid fa-store"></i> Customer View</a>
       </div>
     </div>
   </header>
@@ -35,8 +35,8 @@
         <p style="color:var(--text-muted); font-size:0.9rem;" id="shop-subtitle">Loading your shop status...</p>
       </div>
       <div style="display:flex; gap:10px;">
-        <a href="/static/seller/products.html" class="btn btn-primary btn-sm"><i class="fa-solid fa-boxes-stacked"></i> Manage Products</a>
-        <a href="/static/seller/orders.html" class="btn btn-success btn-sm"><i class="fa-solid fa-receipt"></i> Customer Orders</a>
+        <a href="/GB-market/static/seller/products.html" class="btn btn-primary btn-sm"><i class="fa-solid fa-boxes-stacked"></i> Manage Products</a>
+        <a href="/GB-market/static/seller/orders.html" class="btn btn-success btn-sm"><i class="fa-solid fa-receipt"></i> Customer Orders</a>
       </div>
     </div>
 
@@ -76,7 +76,7 @@
           <h3 style="font-size:1.15rem; font-weight:700; color:var(--primary-dark); margin:0;">
             Recent Orders
           </h3>
-          <a href="/static/seller/orders.html" style="font-size:0.85rem; color:var(--primary); font-weight:600;">View All &rarr;</a>
+          <a href="/GB-market/static/seller/orders.html" style="font-size:0.85rem; color:var(--primary); font-weight:600;">View All &rarr;</a>
         </div>
 
         <div id="recent-orders-list" style="display:flex; flex-direction:column; gap:12px;">
@@ -97,8 +97,8 @@
     </div>
   </main>
 
-  <script src="/static/js/api.js"></script>
-  <script src="/static/js/auth.js"></script>
+  <script src="/GB-market/static/js/api.js"></script>
+  <script src="/GB-market/static/js/auth.js"></script>
   <script>
     async function initSellerDashboard() {
       if (!requireAuth(["shopkeeper", "admin"])) return;
@@ -106,7 +106,7 @@
       try {
         const shop = await apiFetch("/shops/my-shop");
         if (!shop) {
-          window.location.href = "/static/shop-register.html";
+          window.location.href = "/GB-market/static/shop-register.html";
           return;
         }
 
@@ -142,7 +142,7 @@
           <strong>Physical Address:</strong> ${shop.address}<br>
           <strong>Opening Hours:</strong> ${shop.opening_hours}<br>
           <div style="margin-top:12px;">
-            <a href="/static/shop-detail.html?slug=${shop.slug}" class="btn btn-outline btn-sm" style="width:100%;"><i class="fa-solid fa-eye"></i> View Public Storefront</a>
+            <a href="/GB-market/static/shop-detail.html?slug=${shop.slug}" class="btn btn-outline btn-sm" style="width:100%;"><i class="fa-solid fa-eye"></i> View Public Storefront</a>
           </div>
         `;
 
@@ -190,3 +190,4 @@
   </script>
 </body>
 </html>
+

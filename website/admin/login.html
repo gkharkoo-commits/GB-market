@@ -1,22 +1,22 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Login — GB MARKET Control Center</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <link rel="stylesheet" href="/static/css/styles.css">
+  <link rel="stylesheet" href="/GB-market/static/css/styles.css">
 </head>
 <body style="background-color: #0b1329; color: #f8fafc; min-height: 100vh; display: flex; flex-direction: column;">
 
   <header style="background: rgba(15, 23, 42, 0.8); border-bottom: 1px solid rgba(255,255,255,0.1); padding: 16px 0;">
     <div class="container" style="display:flex; justify-content:space-between; align-items:center;">
-      <a href="/static/index.html" class="brand-logo" style="color:white;">
+      <a href="/GB-market/static/index.html" class="brand-logo" style="color:white;">
         <i class="fa-solid fa-mountain-sun" style="color:#38bdf8;"></i>
         <span>GB MARKET</span>
         <span class="brand-badge" style="background:#d97706;">Admin Access</span>
       </a>
-      <a href="/static/index.html" style="font-size:0.85rem; color:#94a3b8;"><i class="fa-solid fa-arrow-left"></i> Customer Marketplace</a>
+      <a href="/GB-market/static/index.html" style="font-size:0.85rem; color:#94a3b8;"><i class="fa-solid fa-arrow-left"></i> Customer Marketplace</a>
     </div>
   </header>
 
@@ -61,7 +61,7 @@
     GB MARKET &bull; Protected Administrator Area &bull; Role-Based Access Control Enforced
   </footer>
 
-  <script src="/static/js/api.js"></script>
+  <script src="/GB-market/static/js/api.js"></script>
   <script>
     document.getElementById("admin-login-form").addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -95,7 +95,7 @@
         });
 
         // Redirect to admin dashboard
-        window.location.href = "/static/admin/index.html";
+        window.location.href = "/GB-market/static/admin/index.html";
       } catch (err) {
         errBox.textContent = err.message || "Invalid administrator credentials";
         errBox.style.display = "block";
@@ -106,3 +106,4 @@
   </script>
 </body>
 </html>
+

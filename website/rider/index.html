@@ -1,17 +1,17 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Rider Hub — GB MARKET</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <link rel="stylesheet" href="/static/css/styles.css">
+  <link rel="stylesheet" href="/GB-market/static/css/styles.css">
 </head>
 <body style="background-color: #f8fafc;">
 
   <header class="navbar">
     <div class="container nav-container">
-      <a href="/static/index.html" class="brand-logo">
+      <a href="/GB-market/static/index.html" class="brand-logo">
         <i class="fa-solid fa-motorcycle" style="color:#4ade80;"></i>
         <span>GB MARKET</span>
         <span class="brand-badge" style="background:#059669;">Rider Portal</span>
@@ -19,7 +19,7 @@
 
       <div class="nav-actions">
         <div id="nav-auth-slot"></div>
-        <a href="/static/index.html" class="nav-btn-link"><i class="fa-solid fa-house"></i> Home</a>
+        <a href="/GB-market/static/index.html" class="nav-btn-link"><i class="fa-solid fa-house"></i> Home</a>
       </div>
     </div>
   </header>
@@ -70,8 +70,8 @@
     </div>
   </div>
 
-  <script src="/static/js/api.js"></script>
-  <script src="/static/js/auth.js"></script>
+  <script src="/GB-market/static/js/api.js"></script>
+  <script src="/GB-market/static/js/auth.js"></script>
   <script>
     async function loadRiderDeliveries() {
       if (!requireAuth(["rider", "admin"])) return;
@@ -186,3 +186,4 @@
   </script>
 </body>
 </html>
+

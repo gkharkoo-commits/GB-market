@@ -1,18 +1,18 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Register Shop — GB MARKET</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <link rel="stylesheet" href="/static/css/styles.css">
+  <link rel="stylesheet" href="/GB-market/static/css/styles.css">
 </head>
 <body>
 
   <!-- Top Navbar -->
   <header class="navbar">
     <div class="container nav-container">
-      <a href="/static/index.html" class="brand-logo">
+      <a href="/GB-market/static/index.html" class="brand-logo">
         <i class="fa-solid fa-mountain-sun" style="color:#38bdf8;"></i>
         <span>GB MARKET</span>
         <span class="brand-badge">Merchant Hub</span>
@@ -20,7 +20,7 @@
 
       <div class="nav-actions">
         <div id="nav-auth-slot"></div>
-        <a href="/static/index.html" class="nav-btn-link"><i class="fa-solid fa-arrow-left"></i> Back to Store</a>
+        <a href="/GB-market/static/index.html" class="nav-btn-link"><i class="fa-solid fa-arrow-left"></i> Back to Store</a>
       </div>
     </div>
   </header>
@@ -159,15 +159,15 @@
     </div>
   </main>
 
-  <script src="/static/js/api.js"></script>
-  <script src="/static/js/auth.js"></script>
+  <script src="/GB-market/static/js/api.js"></script>
+  <script src="/GB-market/static/js/auth.js"></script>
   <script>
     async function initPage() {
       // Must be logged in
       const user = getCurrentUser();
       const token = getAuthToken();
       if (!user || !token) {
-        window.location.href = `/static/login.html?redirect=${encodeURIComponent(window.location.pathname)}`;
+        window.location.href = `/GB-market/static/login.html?redirect=${encodeURIComponent(window.location.pathname)}`;
         return;
       }
 
@@ -234,8 +234,8 @@
           </div>
           ${shop.verification_status === "approved" ? `
             <div style="margin-top:18px; display:flex; gap:10px;">
-              <a href="/static/seller/index.html" class="btn btn-primary btn-sm"><i class="fa-solid fa-gauge"></i> Open Seller Dashboard</a>
-              <a href="/static/seller/products.html" class="btn btn-success btn-sm"><i class="fa-solid fa-plus"></i> Add Products</a>
+              <a href="/GB-market/static/seller/index.html" class="btn btn-primary btn-sm"><i class="fa-solid fa-gauge"></i> Open Seller Dashboard</a>
+              <a href="/GB-market/static/seller/products.html" class="btn btn-success btn-sm"><i class="fa-solid fa-plus"></i> Add Products</a>
             </div>
           ` : ''}
         </div>
@@ -327,3 +327,4 @@
   </script>
 </body>
 </html>
+

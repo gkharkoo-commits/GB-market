@@ -1,4 +1,4 @@
-/**
+﻿/**
  * GB MARKET — Main Application Frontend Logic
  * Version 3.0 — Enhanced Responsive Marketplace System
  */
@@ -46,7 +46,7 @@ function toggleWishlist(product) {
       title: product.title || "Gilgit-Baltistan Product",
       price: product.price || 0,
       slug: product.slug || "",
-      image: product.image || "/static/assets/prod-almonds.jpg",
+      image: product.image || "/GB-market/static/assets/prod-almonds.jpg",
       shop_name: product.shop_name || "Verified Local Shop"
     });
     saveWishlist(list);
@@ -135,9 +135,9 @@ function renderWishlistDrawerItems() {
 
   container.innerHTML = list.map(item => `
     <div class="wishlist-item-card">
-      <img src="${item.image}" alt="${item.title}" onerror="this.src='/static/assets/prod-almonds.jpg'" class="wishlist-item-img">
+      <img src="${item.image}" alt="${item.title}" onerror="this.src='/GB-market/static/assets/prod-almonds.jpg'" class="wishlist-item-img">
       <div class="wishlist-item-details">
-        <a href="/static/product-detail.html?slug=${item.slug}" class="wishlist-item-title">${item.title}</a>
+        <a href="/GB-market/static/product-detail.html?slug=${item.slug}" class="wishlist-item-title">${item.title}</a>
         <div class="wishlist-item-shop"><i class="fa-solid fa-store"></i> ${item.shop_name}</div>
         <div class="wishlist-item-price">PKR ${(item.price || 0).toLocaleString()}</div>
         <div class="wishlist-item-actions">
@@ -411,22 +411,22 @@ async function loadFeaturedProducts() {
     container.innerHTML = products.map(p => {
       const img = p.images && p.images.length > 0
         ? p.images[0].image_url
-        : "/static/assets/prod-almonds.jpg";
+        : "/GB-market/static/assets/prod-almonds.jpg";
       const isOutOfStock = p.stock_quantity <= 0;
       const isSaved = isWishlisted(p.id);
 
       return `
         <div class="gbm-product-card">
           <div class="gbm-product-img-box">
-            <a href="/static/product-detail.html?slug=${p.slug}">
-              <img src="${img}" alt="${p.title}" loading="lazy" onerror="this.src='/static/assets/prod-almonds.jpg'">
+            <a href="/GB-market/static/product-detail.html?slug=${p.slug}">
+              <img src="${img}" alt="${p.title}" loading="lazy" onerror="this.src='/GB-market/static/assets/prod-almonds.jpg'">
             </a>
             <button type="button" class="btn-wishlist ${isSaved ? 'active' : ''}" data-wishlist-id="${p.id}" onclick="handleWishlistClick(event, ${p.id}, '${escapeQuote(p.title)}', ${p.price}, '${p.slug}', '${img}', '${escapeQuote(p.shop_name || '')}')" title="Save to Wishlist">
               <i class="${isSaved ? 'fa-solid' : 'fa-regular'} fa-heart"></i>
             </button>
           </div>
           <div class="gbm-product-body">
-            <a href="/static/product-detail.html?slug=${p.slug}" class="gbm-prod-title" title="${p.title}">${p.title}</a>
+            <a href="/GB-market/static/product-detail.html?slug=${p.slug}" class="gbm-prod-title" title="${p.title}">${p.title}</a>
             <span class="gbm-prod-cat"><i class="fa-solid fa-store"></i> ${p.shop_name || 'Verified Merchant'}</span>
             <div class="gbm-prod-rating">
               <i class="fa-solid fa-star"></i> 4.8 <span>(${p.stock_quantity} in stock)</span>
@@ -502,7 +502,7 @@ async function loadProducts() {
     grid.innerHTML = products.map(p => {
       const img = p.images && p.images.length > 0 
         ? p.images[0].image_url 
-        : '/static/assets/prod-almonds.jpg';
+        : '/GB-market/static/assets/prod-almonds.jpg';
       
       const isOutOfStock = p.stock_quantity <= 0;
       const isSaved = isWishlisted(p.id);
@@ -510,8 +510,8 @@ async function loadProducts() {
       return `
         <div class="product-card">
           <div class="product-img-wrapper">
-            <a href="/static/product-detail.html?slug=${p.slug}">
-              <img src="${img}" alt="${p.title}" loading="lazy" onerror="this.src='/static/assets/prod-almonds.jpg'">
+            <a href="/GB-market/static/product-detail.html?slug=${p.slug}">
+              <img src="${img}" alt="${p.title}" loading="lazy" onerror="this.src='/GB-market/static/assets/prod-almonds.jpg'">
             </a>
             ${p.is_featured ? `<span class="badge-featured"><i class="fa-solid fa-star"></i> Featured</span>` : ''}
             <span class="badge-stock ${isOutOfStock ? 'out-of-stock' : ''}">${isOutOfStock ? 'Out of Stock' : `${p.stock_quantity} in stock`}</span>
@@ -521,7 +521,7 @@ async function loadProducts() {
           </div>
           <div class="product-info">
             <span class="product-shop-name"><i class="fa-solid fa-store"></i> ${p.shop_name || 'Verified Vendor'}</span>
-            <a href="/static/product-detail.html?slug=${p.slug}" class="product-title">${p.title}</a>
+            <a href="/GB-market/static/product-detail.html?slug=${p.slug}" class="product-title">${p.title}</a>
             <div class="product-price-row">
               <span class="price-pkr">PKR ${p.price.toLocaleString()}</span>
               ${p.original_price ? `<span class="original-price">PKR ${p.original_price.toLocaleString()}</span>` : ''}
@@ -618,14 +618,14 @@ async function loadApprovedShops() {
 
     grid.innerHTML = shops.map(s => `
       <div class="shop-card">
-        <img class="shop-cover" src="${s.exterior_image || '/static/assets/hero-banner-gb.jpg'}" alt="${s.name}" onerror="this.src='/static/assets/hero-banner-gb.jpg'">
+        <img class="shop-cover" src="${s.exterior_image || '/GB-market/static/assets/hero-banner-gb.jpg'}" alt="${s.name}" onerror="this.src='/GB-market/static/assets/hero-banner-gb.jpg'">
         <div class="shop-body">
-          <h3 class="shop-title"><a href="/static/shop-detail.html?slug=${s.slug}">${s.name}</a></h3>
+          <h3 class="shop-title"><a href="/GB-market/static/shop-detail.html?slug=${s.slug}">${s.name}</a></h3>
           <div class="shop-location"><i class="fa-solid fa-location-dot" style="color:var(--secondary);"></i> ${s.locality}, ${s.city}</div>
           <p class="shop-desc">${s.owner_name} &bull; Open: ${s.opening_hours || '9:00 AM - 9:00 PM'}</p>
           <div class="shop-footer">
             <span><i class="fa-solid fa-shield-halved" style="color:var(--secondary);"></i> Verified Seller</span>
-            <a href="/static/shop-detail.html?slug=${s.slug}" style="color:var(--primary); font-weight:700;">Visit Shop &rarr;</a>
+            <a href="/GB-market/static/shop-detail.html?slug=${s.slug}" style="color:var(--primary); font-weight:700;">Visit Shop &rarr;</a>
           </div>
         </div>
       </div>
@@ -736,7 +736,7 @@ function openFAQModal() {
       </div>
       <div class="modal-faq-item">
         <h4><i class="fa-solid fa-circle-question" style="color:var(--secondary);"></i> Can I cancel my order?</h4>
-        <p>Yes. You can cancel your order directly from your <a href="/static/my-orders.html" style="color:var(--secondary); font-weight:700;">My Orders</a> page as long as the merchant has not yet dispatched it.</p>
+        <p>Yes. You can cancel your order directly from your <a href="/GB-market/static/my-orders.html" style="color:var(--secondary); font-weight:700;">My Orders</a> page as long as the merchant has not yet dispatched it.</p>
       </div>
     </div>
   `;
@@ -930,3 +930,4 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+

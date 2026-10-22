@@ -1,11 +1,11 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Product Details — GB MARKET</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <link rel="stylesheet" href="/static/css/styles.css">
+  <link rel="stylesheet" href="/GB-market/static/css/styles.css">
 </head>
 <body>
 
@@ -17,14 +17,14 @@
   <!-- Primary Navbar -->
   <header class="navbar">
     <div class="container nav-container">
-      <a href="/static/index.html" class="brand-logo">
+      <a href="/GB-market/static/index.html" class="brand-logo">
         <i class="fa-solid fa-mountain-sun" style="color:#38bdf8;"></i>
         <span>GB MARKET</span>
       </a>
 
       <div class="nav-actions">
         <div id="nav-auth-slot"></div>
-        <a href="/static/cart.html" class="cart-icon-btn">
+        <a href="/GB-market/static/cart.html" class="cart-icon-btn">
           <i class="fa-solid fa-cart-shopping"></i>
           <span>Cart</span>
           <span id="cart-count-badge" class="cart-badge">0</span>
@@ -35,7 +35,7 @@
 
   <main class="container" style="padding: 32px 16px;">
     <div style="margin-bottom: 16px; font-size: 0.85rem; color: var(--text-muted);">
-      <a href="/static/index.html">Home</a> &gt; <span id="breadcrumb-category">Products</span> &gt; <span id="breadcrumb-title" style="color:var(--primary); font-weight:600;">Details</span>
+      <a href="/GB-market/static/index.html">Home</a> &gt; <span id="breadcrumb-category">Products</span> &gt; <span id="breadcrumb-title" style="color:var(--primary); font-weight:600;">Details</span>
     </div>
 
     <div id="product-loading" style="text-align: center; padding: 60px 0;">
@@ -106,8 +106,8 @@
     </div>
   </main>
 
-  <script src="/static/js/api.js"></script>
-  <script src="/static/js/auth.js"></script>
+  <script src="/GB-market/static/js/api.js"></script>
+  <script src="/GB-market/static/js/auth.js"></script>
   <script>
     let currentProduct = null;
 
@@ -115,7 +115,7 @@
       const urlParams = new URLSearchParams(window.location.search);
       const slug = urlParams.get("slug");
       if (!slug) {
-        window.location.href = "/static/index.html";
+        window.location.href = "/GB-market/static/index.html";
         return;
       }
 
@@ -126,7 +126,7 @@
         document.getElementById("product-loading").innerHTML = `
           <div style="color:red;">
             <p>Product not found or currently unavailable.</p>
-            <a href="/static/index.html" class="btn btn-outline btn-sm" style="margin-top:10px;">Return to Marketplace</a>
+            <a href="/GB-market/static/index.html" class="btn btn-outline btn-sm" style="margin-top:10px;">Return to Marketplace</a>
           </div>
         `;
       }
@@ -149,7 +149,7 @@
 
       // Shop link
       document.getElementById("shop-name-text").textContent = p.shop_name;
-      document.getElementById("shop-badge-link").href = `/static/shop-detail.html?slug=${p.shop_slug || ''}`;
+      document.getElementById("shop-badge-link").href = `/GB-market/static/shop-detail.html?slug=${p.shop_slug || ''}`;
 
       // Stock badge
       const stockBadge = document.getElementById("stock-badge");
@@ -205,10 +205,11 @@
     async function handleBuyNow() {
       if (!currentProduct) return;
       await handleAddToCart();
-      window.location.href = "/static/checkout.html";
+      window.location.href = "/GB-market/static/checkout.html";
     }
 
     document.addEventListener("DOMContentLoaded", loadProduct);
   </script>
 </body>
 </html>
+

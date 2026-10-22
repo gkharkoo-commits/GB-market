@@ -1,17 +1,17 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Checkout — GB MARKET</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <link rel="stylesheet" href="/static/css/styles.css">
+  <link rel="stylesheet" href="/GB-market/static/css/styles.css">
 </head>
 <body style="background-color: #f8fafc;">
 
   <header class="navbar">
     <div class="container nav-container">
-      <a href="/static/index.html" class="brand-logo">
+      <a href="/GB-market/static/index.html" class="brand-logo">
         <i class="fa-solid fa-mountain-sun" style="color:#38bdf8;"></i>
         <span>GB MARKET</span>
         <span class="brand-badge">Secure Checkout</span>
@@ -19,7 +19,7 @@
 
       <div class="nav-actions">
         <div id="nav-auth-slot"></div>
-        <a href="/static/cart.html" class="nav-btn-link"><i class="fa-solid fa-arrow-left"></i> Back to Cart</a>
+        <a href="/GB-market/static/cart.html" class="nav-btn-link"><i class="fa-solid fa-arrow-left"></i> Back to Cart</a>
       </div>
     </div>
   </header>
@@ -144,8 +144,8 @@
     </div>
   </main>
 
-  <script src="/static/js/api.js"></script>
-  <script src="/static/js/auth.js"></script>
+  <script src="/GB-market/static/js/api.js"></script>
+  <script src="/GB-market/static/js/auth.js"></script>
   <script>
     let currentCart = null;
     let deliveryFee = 150;
@@ -155,7 +155,7 @@
       const user = getCurrentUser();
       const token = getAuthToken();
       if (!user || !token) {
-        window.location.href = `/static/login.html?redirect=${encodeURIComponent(window.location.pathname)}`;
+        window.location.href = `/GB-market/static/login.html?redirect=${encodeURIComponent(window.location.pathname)}`;
         return;
       }
 
@@ -182,7 +182,7 @@
         currentCart = await apiFetch("/cart/");
         if (!currentCart.items || currentCart.items.length === 0) {
           alert("Your cart is empty! Redirecting to marketplace...");
-          window.location.href = "/static/index.html";
+          window.location.href = "/GB-market/static/index.html";
           return;
         }
         renderCartSummary();
@@ -250,7 +250,7 @@
         });
 
         updateCartCountBadge();
-        window.location.href = `/static/order-detail.html?id=${order.id}&placed=true`;
+        window.location.href = `/GB-market/static/order-detail.html?id=${order.id}&placed=true`;
       } catch (err) {
         errBox.textContent = err.message || "Failed to place order. Please review your details.";
         errBox.style.display = "block";
@@ -263,3 +263,4 @@
   </script>
 </body>
 </html>
+

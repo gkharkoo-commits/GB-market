@@ -1,4 +1,4 @@
-/**
+﻿/**
  * GB MARKET — Authentication & Session Manager
  */
 
@@ -12,22 +12,22 @@ function updateNavAuthUI() {
     if (user && token) {
       let roleBadge = "";
       if (user.role === "admin") {
-        roleBadge = `<a href="/static/admin/index.html" style="color:#facc15; font-weight:700;"><i class="fa-solid fa-gauge"></i> Admin</a>`;
+        roleBadge = `<a href="/GB-market/static/admin/index.html" style="color:#facc15; font-weight:700;"><i class="fa-solid fa-gauge"></i> Admin</a>`;
       } else if (user.role === "shopkeeper") {
-        roleBadge = `<a href="/static/seller/index.html" style="color:#38bdf8; font-weight:700;"><i class="fa-solid fa-store"></i> Seller Hub</a>`;
+        roleBadge = `<a href="/GB-market/static/seller/index.html" style="color:#38bdf8; font-weight:700;"><i class="fa-solid fa-store"></i> Seller Hub</a>`;
       } else if (user.role === "rider") {
-        roleBadge = `<a href="/static/rider/index.html" style="color:#4ade80; font-weight:700;"><i class="fa-solid fa-motorcycle"></i> Rider Hub</a>`;
+        roleBadge = `<a href="/GB-market/static/rider/index.html" style="color:#4ade80; font-weight:700;"><i class="fa-solid fa-motorcycle"></i> Rider Hub</a>`;
       }
 
       topAuthSlot.innerHTML = `
         ${roleBadge}
-        <a href="/static/account.html"><i class="fa-solid fa-user-circle"></i> ${user.full_name ? user.full_name.split(" ")[0] : "Account"}</a>
+        <a href="/GB-market/static/account.html"><i class="fa-solid fa-user-circle"></i> ${user.full_name ? user.full_name.split(" ")[0] : "Account"}</a>
         <a href="javascript:void(0)" onclick="handleLogout()"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</a>
       `;
     } else {
       topAuthSlot.innerHTML = `
-        <a href="/static/login.html"><i class="fa-solid fa-user"></i> Login</a>
-        <a href="/static/register.html"><i class="fa-solid fa-user-plus"></i> Register</a>
+        <a href="/GB-market/static/login.html"><i class="fa-solid fa-user"></i> Login</a>
+        <a href="/GB-market/static/register.html"><i class="fa-solid fa-user-plus"></i> Register</a>
       `;
     }
   }
@@ -38,23 +38,23 @@ function updateNavAuthUI() {
     if (user && token) {
       let roleDashboardLink = "";
       if (user.role === "admin") {
-        roleDashboardLink = `<a href="/static/admin/index.html" class="nav-btn-link" style="color:#fbbf24;"><i class="fa-solid fa-gauge"></i> Admin</a>`;
+        roleDashboardLink = `<a href="/GB-market/static/admin/index.html" class="nav-btn-link" style="color:#fbbf24;"><i class="fa-solid fa-gauge"></i> Admin</a>`;
       } else if (user.role === "shopkeeper") {
-        roleDashboardLink = `<a href="/static/seller/index.html" class="nav-btn-link" style="color:#38bdf8;"><i class="fa-solid fa-store"></i> Seller Hub</a>`;
+        roleDashboardLink = `<a href="/GB-market/static/seller/index.html" class="nav-btn-link" style="color:#38bdf8;"><i class="fa-solid fa-store"></i> Seller Hub</a>`;
       } else if (user.role === "rider") {
-        roleDashboardLink = `<a href="/static/rider/index.html" class="nav-btn-link" style="color:#4ade80;"><i class="fa-solid fa-motorcycle"></i> Rider Hub</a>`;
+        roleDashboardLink = `<a href="/GB-market/static/rider/index.html" class="nav-btn-link" style="color:#4ade80;"><i class="fa-solid fa-motorcycle"></i> Rider Hub</a>`;
       }
 
       navContainer.innerHTML = `
         ${roleDashboardLink}
-        <a href="/static/account.html" class="nav-btn-link"><i class="fa-solid fa-user-circle"></i> ${(user.full_name || "Account").split(" ")[0]}</a>
-        <a href="/static/my-orders.html" class="nav-btn-link"><i class="fa-solid fa-box"></i> Orders</a>
+        <a href="/GB-market/static/account.html" class="nav-btn-link"><i class="fa-solid fa-user-circle"></i> ${(user.full_name || "Account").split(" ")[0]}</a>
+        <a href="/GB-market/static/my-orders.html" class="nav-btn-link"><i class="fa-solid fa-box"></i> Orders</a>
         <button onclick="handleLogout()" class="nav-btn-link" style="background:none;border:none;"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
       `;
     } else {
       navContainer.innerHTML = `
-        <a href="/static/login.html" class="nav-btn-link"><i class="fa-solid fa-arrow-right-to-bracket"></i> Login</a>
-        <a href="/static/register.html" class="btn btn-sm btn-success" style="color:white;">Sign Up</a>
+        <a href="/GB-market/static/login.html" class="nav-btn-link"><i class="fa-solid fa-arrow-right-to-bracket"></i> Login</a>
+        <a href="/GB-market/static/register.html" class="btn btn-sm btn-success" style="color:white;">Sign Up</a>
       `;
     }
   }
@@ -92,7 +92,7 @@ async function updateCartCountBadge() {
 
 function handleLogout() {
   clearAuthToken();
-  window.location.href = "/static/index.html";
+  window.location.href = "/GB-market/static/index.html";
 }
 
 function requireAuth(allowedRoles = []) {
@@ -103,9 +103,9 @@ function requireAuth(allowedRoles = []) {
 
   if (!user || !token) {
     if (isAdminSection) {
-      window.location.href = `/static/admin/login.html?redirect=${encodeURIComponent(window.location.pathname)}`;
+      window.location.href = `/GB-market/static/admin/login.html?redirect=${encodeURIComponent(window.location.pathname)}`;
     } else {
-      window.location.href = `/static/login.html?redirect=${encodeURIComponent(window.location.pathname)}`;
+      window.location.href = `/GB-market/static/login.html?redirect=${encodeURIComponent(window.location.pathname)}`;
     }
     return false;
   }
@@ -113,10 +113,10 @@ function requireAuth(allowedRoles = []) {
   if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
     if (isAdminSection) {
       alert("Access restricted: Administrator privileges required.");
-      window.location.href = "/static/admin/login.html";
+      window.location.href = "/GB-market/static/admin/login.html";
     } else {
       alert("Access restricted: You do not have permissions for this section.");
-      window.location.href = "/static/index.html";
+      window.location.href = "/GB-market/static/index.html";
     }
     return false;
   }
@@ -128,3 +128,4 @@ document.addEventListener("DOMContentLoaded", () => {
   updateNavAuthUI();
   updateCartCountBadge();
 });
+

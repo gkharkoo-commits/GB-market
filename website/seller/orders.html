@@ -1,17 +1,17 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Manage Orders — GB MARKET Seller Hub</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <link rel="stylesheet" href="/static/css/styles.css">
+  <link rel="stylesheet" href="/GB-market/static/css/styles.css">
 </head>
 <body style="background-color: #f8fafc;">
 
   <header class="navbar">
     <div class="container nav-container">
-      <a href="/static/seller/index.html" class="brand-logo">
+      <a href="/GB-market/static/seller/index.html" class="brand-logo">
         <i class="fa-solid fa-mountain-sun" style="color:#38bdf8;"></i>
         <span>GB MARKET</span>
         <span class="brand-badge" style="background:#0284c7;">Seller Orders</span>
@@ -19,7 +19,7 @@
 
       <div class="nav-actions">
         <div id="nav-auth-slot"></div>
-        <a href="/static/seller/index.html" class="nav-btn-link"><i class="fa-solid fa-gauge"></i> Seller Dashboard</a>
+        <a href="/GB-market/static/seller/index.html" class="nav-btn-link"><i class="fa-solid fa-gauge"></i> Seller Dashboard</a>
       </div>
     </div>
   </header>
@@ -78,8 +78,8 @@
     </div>
   </div>
 
-  <script src="/static/js/api.js"></script>
-  <script src="/static/js/auth.js"></script>
+  <script src="/GB-market/static/js/api.js"></script>
+  <script src="/GB-market/static/js/auth.js"></script>
   <script>
     async function loadSellerOrders() {
       if (!requireAuth(["shopkeeper", "admin"])) return;
@@ -192,3 +192,4 @@
   </script>
 </body>
 </html>
+

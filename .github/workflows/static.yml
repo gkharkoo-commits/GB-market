@@ -27,11 +27,11 @@ jobs:
       - name: Prepare Website Artifact for GitHub Pages
         run: |
           mkdir -p _site
-          # Copy all website files into the publication root
+          # 1. Copy website contents directly to root of Pages deployment
           cp -r website/* _site/
-          # Create a static symlink/folder so any /static/ references work seamlessly
+          # 2. Also keep a 'static' directory alias in _site so both /static/ and relative links work
           cp -r website _site/static
-          # Add .nojekyll to prevent Jekyll from ignoring folders/files starting with underscores
+          # 3. Create .nojekyll so Jekyll does not process or block assets
           touch _site/.nojekyll
 
       - name: Setup Pages

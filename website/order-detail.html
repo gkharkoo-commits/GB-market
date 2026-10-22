@@ -1,11 +1,11 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Order Tracking & Details — GB MARKET</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <link rel="stylesheet" href="/static/css/styles.css">
+  <link rel="stylesheet" href="/GB-market/static/css/styles.css">
   <style>
     .timeline {
       position: relative;
@@ -45,14 +45,14 @@
 
   <header class="navbar">
     <div class="container nav-container">
-      <a href="/static/index.html" class="brand-logo">
+      <a href="/GB-market/static/index.html" class="brand-logo">
         <i class="fa-solid fa-mountain-sun" style="color:#38bdf8;"></i>
         <span>GB MARKET</span>
       </a>
 
       <div class="nav-actions">
         <div id="nav-auth-slot"></div>
-        <a href="/static/my-orders.html" class="nav-btn-link"><i class="fa-solid fa-arrow-left"></i> All Orders</a>
+        <a href="/GB-market/static/my-orders.html" class="nav-btn-link"><i class="fa-solid fa-arrow-left"></i> All Orders</a>
       </div>
     </div>
   </header>
@@ -155,8 +155,8 @@
     </div>
   </div>
 
-  <script src="/static/js/api.js"></script>
-  <script src="/static/js/auth.js"></script>
+  <script src="/GB-market/static/js/api.js"></script>
+  <script src="/GB-market/static/js/auth.js"></script>
   <script>
     let currentOrder = null;
 
@@ -172,7 +172,7 @@
       }
 
       if (!orderId) {
-        window.location.href = "/static/my-orders.html";
+        window.location.href = "/GB-market/static/my-orders.html";
         return;
       }
 
@@ -183,7 +183,7 @@
         document.getElementById("order-loading").innerHTML = `
           <div style="color:red;">
             <p>Could not load order details: ${err.message}</p>
-            <a href="/static/my-orders.html" class="btn btn-outline btn-sm" style="margin-top:10px;">Back to Orders</a>
+            <a href="/GB-market/static/my-orders.html" class="btn btn-outline btn-sm" style="margin-top:10px;">Back to Orders</a>
           </div>
         `;
       }
@@ -315,3 +315,4 @@
   </script>
 </body>
 </html>
+

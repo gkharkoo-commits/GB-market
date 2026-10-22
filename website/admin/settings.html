@@ -1,24 +1,24 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Marketplace Settings — GB MARKET Admin</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <link rel="stylesheet" href="/static/css/styles.css">
+  <link rel="stylesheet" href="/GB-market/static/css/styles.css">
 </head>
 <body style="background-color: #f1f5f9;">
 
   <header class="navbar" style="background-color: #091a2b;">
     <div class="container nav-container">
-      <a href="/static/admin/index.html" class="brand-logo">
+      <a href="/GB-market/static/admin/index.html" class="brand-logo">
         <i class="fa-solid fa-gauge-high" style="color:#fbbf24;"></i>
         <span>GB MARKET ADMIN</span>
       </a>
 
       <div class="nav-actions">
         <div id="nav-auth-slot"></div>
-        <a href="/static/admin/index.html" class="nav-btn-link"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+        <a href="/GB-market/static/admin/index.html" class="nav-btn-link"><i class="fa-solid fa-gauge"></i> Dashboard</a>
       </div>
     </div>
 
@@ -26,14 +26,14 @@
     <div class="subnav" style="background-color: #030712;">
       <div class="container subnav-container">
         <div class="subnav-links">
-          <a href="/static/admin/index.html"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
-          <a href="/static/admin/shops.html"><i class="fa-solid fa-store"></i> Shop Applications</a>
-          <a href="/static/admin/products.html"><i class="fa-solid fa-boxes-stacked"></i> Products & Categories</a>
-          <a href="/static/admin/orders.html"><i class="fa-solid fa-receipt"></i> Orders & Cancellations</a>
-          <a href="/static/admin/deliveries.html"><i class="fa-solid fa-motorcycle"></i> Riders & Deliveries</a>
-          <a href="/static/admin/reports.html"><i class="fa-solid fa-chart-pie"></i> Reports & Payouts</a>
-          <a href="/static/admin/users.html"><i class="fa-solid fa-users"></i> Users & Roles</a>
-          <a href="/static/admin/settings.html" class="active"><i class="fa-solid fa-sliders"></i> Settings</a>
+          <a href="/GB-market/static/admin/index.html"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+          <a href="/GB-market/static/admin/shops.html"><i class="fa-solid fa-store"></i> Shop Applications</a>
+          <a href="/GB-market/static/admin/products.html"><i class="fa-solid fa-boxes-stacked"></i> Products & Categories</a>
+          <a href="/GB-market/static/admin/orders.html"><i class="fa-solid fa-receipt"></i> Orders & Cancellations</a>
+          <a href="/GB-market/static/admin/deliveries.html"><i class="fa-solid fa-motorcycle"></i> Riders & Deliveries</a>
+          <a href="/GB-market/static/admin/reports.html"><i class="fa-solid fa-chart-pie"></i> Reports & Payouts</a>
+          <a href="/GB-market/static/admin/users.html"><i class="fa-solid fa-users"></i> Users & Roles</a>
+          <a href="/GB-market/static/admin/settings.html" class="active"><i class="fa-solid fa-sliders"></i> Settings</a>
         </div>
       </div>
     </div>
@@ -98,14 +98,14 @@
 
   </main>
 
-  <script src="/static/js/api.js"></script>
-  <script src="/static/js/auth.js"></script>
+  <script src="/GB-market/static/js/api.js"></script>
+  <script src="/GB-market/static/js/auth.js"></script>
   <script>
     async function loadSettings() {
       const user = getCurrentUser();
       const token = getAuthToken();
       if (!user || !token || user.role !== "admin") {
-        window.location.href = "/static/admin/login.html";
+        window.location.href = "/GB-market/static/admin/login.html";
         return;
       }
 
@@ -168,3 +168,4 @@
   </script>
 </body>
 </html>
+

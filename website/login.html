@@ -1,17 +1,17 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login — GB MARKET</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <link rel="stylesheet" href="/static/css/styles.css">
+  <link rel="stylesheet" href="/GB-market/static/css/styles.css">
 </head>
 <body style="background-color: #f1f5f9; display: flex; flex-direction: column; min-height: 100vh;">
 
   <header class="navbar">
     <div class="container nav-container" style="justify-content:center;">
-      <a href="/static/index.html" class="brand-logo">
+      <a href="/GB-market/static/index.html" class="brand-logo">
         <i class="fa-solid fa-mountain-sun" style="color:#38bdf8;"></i>
         <span>GB MARKET</span>
       </a>
@@ -47,7 +47,7 @@
       </form>
 
       <div style="text-align:center; margin-top:24px; padding-top:16px; border-top:1px solid var(--border-color); font-size:0.9rem; color:var(--text-muted);">
-        Don't have an account yet? <a href="/static/register.html" style="color:var(--secondary); font-weight:700;">Sign Up</a>
+        Don't have an account yet? <a href="/GB-market/static/register.html" style="color:var(--secondary); font-weight:700;">Sign Up</a>
       </div>
     </div>
   </main>
@@ -56,7 +56,7 @@
     &copy; 2026 GB MARKET &bull; Gilgit-Baltistan, Pakistan
   </footer>
 
-  <script src="/static/js/api.js"></script>
+  <script src="/GB-market/static/js/api.js"></script>
   <script>
     document.getElementById("login-form").addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -91,13 +91,13 @@
         if (redirect) {
           window.location.href = redirect;
         } else if (res.role === "admin") {
-          window.location.href = "/static/admin/index.html";
+          window.location.href = "/GB-market/static/admin/index.html";
         } else if (res.role === "shopkeeper") {
-          window.location.href = "/static/seller/index.html";
+          window.location.href = "/GB-market/static/seller/index.html";
         } else if (res.role === "rider") {
-          window.location.href = "/static/rider/index.html";
+          window.location.href = "/GB-market/static/rider/index.html";
         } else {
-          window.location.href = "/static/index.html";
+          window.location.href = "/GB-market/static/index.html";
         }
       } catch (err) {
         errBox.textContent = err.message || "Invalid credentials. Please try again.";
@@ -109,3 +109,4 @@
   </script>
 </body>
 </html>
+
